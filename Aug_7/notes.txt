@@ -1,0 +1,88 @@
+
+Exception Handling : 
+
+It is a mechanism of handling the runtime errors during the execution of the program. 
+
+There are 2 types of errors known as 
+
+(i) Compile Time
+
+(ii) Runtime 
+
+Runtime errors occurs during runtime if we pass invalid values, the type of errors we are getting known as
+runtime errors. 
+
+To handle Exceptions, we have various blocks as 
+
+try  :   This block contains code, in which there is possibility of getting runtime errors, The statements which are placed in this block are 			treated as heavy weighted statement(s) as compiler allocates excess memory to them.
+
+except : Once exception comes, then the control will be forwarded to except block, this block contains statement(s) in which there is possibility of getting runtime errors, One try block can contains multiple except blocks. 
+
+else :	This block contains code, that to be executed if no exception occurs. This is optional block. 
+
+finally : This block contains the code, that needs to be executed mandatorily irrespective of try and catch blocks, this block is not 
+		mandatory, but all the statement(s) which are placed in this block are executed as mandatory statements.
+
+
+Different types of exceptions in python:
+_________________________________________
+
+(i)    SyntaxError : This exception raised when the interpreter encounters a syntax error in the code. 
+
+(ii)   TypeError : This exception raised once you try to map with wrong object in program like string to int vice versa
+
+(iii)  NameError : This exception raised when variable or function name is not found in the current scope
+
+(iv) IndexError : When the index is out of range in list or set then this error occurs
+
+(v) KeyError : if the dictionary object not found any key, then keyerror comes
+
+(v) ValueError : This exception raised when a function or method called with an invalid argument or input, such as trying to convert a string
+			into integer etc
+
+(vi) ZeroDivisionError : This exception raised when attempt made to divide number with zero
+
+System exceptions are inadequate to handle in all situations, to overcome this, we need the help of custom exceptions, any class that which derived from Exception can be treated as custom exception.
+
+
+User-Defined exceptions provide more precise control over error handling in your application:-
+
+	-> Clarity  : They provide specific error messages that make it clear what went wrong
+
+	-> Granularity : They allows you to handle exception conditions separtely
+
+class UserDefinedException(Exception):
+	pass
+
+class UserDefinedException(Exception):
+	def __init__(self, message):
+	    self.message = message
+
+	def __str__(self):
+		return f"{self.message}."
+
+You can throw the exception by using raise Keyword
+
+raise UserDefinedException("Relevant message")
+
+now that exception to be caught in except clause 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
