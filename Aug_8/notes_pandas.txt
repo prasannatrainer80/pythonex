@@ -1,0 +1,31 @@
+1. Introduction to Pandas
+
+Pandas is an open-source Python library used for data manipulation, data analysis, and data processing.
+
+The name Pandas comes from Panel Data.
+
+Pandas is especially useful for working with:
+
+Structured data
+CSV and Excel files
+Databases
+Data cleaning and transformation
+2. Installing Pandas
+
+Using pip:
+
+pip install pandas
+
+3. Pandas Data Structures
+
+Pandas mainly provides two important data structures:
+
+1. Series
+
+A one-dimensional labeled array.
+
+2. DataFrame
+
+A two-dimensional labeled table consisting of rows and columns.
+
+There is also a historical Panel structure, but it is deprecated and removed from modern pandas.
