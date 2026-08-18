@@ -1,0 +1,5 @@
+file =open("c:/files/target.txt","w")
+file.write("Welcome to Python Programming...\n")
+file.write("This is From Prasanna...\n")
+file.write("From Wipro Client\n")
+file.write("Thank You\n")

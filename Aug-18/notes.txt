@@ -1,0 +1,30 @@
+Python supports powerful file handling and allows users to handle files, read and write files, along with many other file handling options.
+
+Advantages : 
+_______________
+
+
+1) Storing Output permanently
+
+2) Flexibility
+
+3) Cross Platform 
+
+To create a file 
+
+obj = open(filename,mode)
+
+Various Modes :
+_______________
+
+(i) r : Open an existing file for read operation
+
+(ii) w : Open the existing file for write open. If the file already exists, it overwrites the old contents with new contents. If the file does not exist, it creates a new file.
+
+(iii) a : OPen an existing file and adds the new contents from the end
+
+(iv) r+ : Read and write the data .  It will not override but can modify the data starting rom beginning
+
+(v) w+ : To write an dread data. it overwrites teh previous file if one exists.  It will truncate the file to zero length
+
+
