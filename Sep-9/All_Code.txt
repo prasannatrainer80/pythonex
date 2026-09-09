@@ -1,0 +1,438 @@
+Absolutely. For a PyCharm + MySQL + Python + SQL data-analysis project, here's a complete version of the same example.
+
+1. Project structure
+Create this project in PyCharm:
+
+sales_analysis/
+│
+├── database.py
+├── main.py
+├── analysis.sql
+└── requirements.txt
+
+The MySQL database will be:
+
+Database: sales_db
+Table: sales
+
+2. Install MySQL
+You need MySQL Server installed and running.
+
+You can use MySQL Community Downloads to install MySQL Server.
+
+You can also use MySQL Workbench to execute the SQL scripts.
+
+3. Create the MySQL database
+Open MySQL Workbench and execute:
+
+CREATE DATABASE sales_db;
+
+USE sales_db;
+
+CREATE TABLE sales (
+    order_id INT PRIMARY KEY,
+    order_date DATE,
+    product VARCHAR(100),
+    category VARCHAR(50),
+    quantity INT,
+    price DECIMAL(10,2)
+);
+
+Now insert sample data:
+
+INSERT INTO sales
+(order_id, order_date, product, category, quantity, price)
+VALUES
+(1, '2026-01-05', 'Laptop', 'Electronics', 2, 800.00),
+(2, '2026-01-10', 'Mouse', 'Electronics', 5, 25.00),
+(3, '2026-01-15', 'Keyboard', 'Electronics', 3, 50.00),
+(4, '2026-01-20', 'Chair', 'Furniture', 3, 150.00),
+(5, '2026-02-03', 'Laptop', 'Electronics', 1, 800.00),
+(6, '2026-02-08', 'Desk', 'Furniture', 2, 300.00),
+(7, '2026-02-15', 'Mouse', 'Electronics', 10, 25.00),
+(8, '2026-03-01', 'Laptop', 'Electronics', 3, 800.00),
+(9, '2026-03-12', 'Chair', 'Furniture', 4, 150.00),
+(10, '2026-03-20', 'Keyboard', 'Electronics', 5, 50.00);
+
+Test it:
+
+SELECT * FROM sales;
+
+4. Create SQL analysis file
+In PyCharm, create:
+
+analysis.sql
+
+Put this inside:
+
+USE sales_db;
+
+-- 1. Display all sales
+SELECT *
+FROM sales;
+
+
+-- 2. Calculate revenue for every order
+SELECT
+    order_id,
+    order_date,
+    product,
+    category,
+    quantity,
+    price,
+    quantity * price AS revenue
+FROM sales;
+
+
+-- 3. Calculate total revenue
+SELECT
+    SUM(quantity * price) AS total_revenue
+FROM sales;
+
+
+-- 4. Revenue by category
+SELECT
+    category,
+    SUM(quantity * price) AS revenue
+FROM sales
+GROUP BY category
+ORDER BY revenue DESC;
+
+
+-- 5. Units sold by product
+SELECT
+    product,
+    SUM(quantity) AS units_sold
+FROM sales
+GROUP BY product
+ORDER BY units_sold DESC;
+
+
+-- 6. Monthly revenue
+SELECT
+    DATE_FORMAT(order_date, '%Y-%m') AS month,
+    SUM(quantity * price) AS revenue
+FROM sales
+GROUP BY DATE_FORMAT(order_date, '%Y-%m')
+ORDER BY month;
+
+
+-- 7. Best-selling product by revenue
+SELECT
+    product,
+    SUM(quantity * price) AS revenue
+FROM sales
+GROUP BY product
+ORDER BY revenue DESC
+LIMIT 1;
+
+5. Install Python MySQL connector
+In PyCharm, open the Terminal and run:
+
+pip install mysql-connector-python pandas matplotlib
+
+Or create requirements.txt:
+
+mysql-connector-python
+pandas
+matplotlib
+
+Then:
+
+pip install -r requirements.txt
+
+6. Create database.py
+This file connects Python to MySQL.
+
+import mysql.connector
+
+
+def get_connection():
+    connection = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="YOUR_MYSQL_PASSWORD",
+        database="sales_db"
+    )
+
+    return connection
+
+
+if __name__ == "__main__":
+    connection = get_connection()
+
+    if connection.is_connected():
+        print("Successfully connected to MySQL!")
+
+    connection.close()
+
+Change:
+
+password="YOUR_MYSQL_PASSWORD"
+
+to your actual MySQL password.
+
+For example:
+
+password="MyPassword123"
+
+Run database.py.
+
+You should see:
+
+Successfully connected to MySQL!
+
+7. Create main.py
+Now we can use SQL + Python + Pandas together.
+
+import mysql.connector
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+# -----------------------------------------
+# 1. Connect to MySQL
+# -----------------------------------------
+
+connection = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="YOUR_MYSQL_PASSWORD",
+    database="sales_db"
+)
+
+print("Connected to MySQL successfully!")
+
+
+# -----------------------------------------
+# 2. SQL query
+# -----------------------------------------
+
+query = """
+SELECT
+    DATE_FORMAT(order_date, '%Y-%m') AS month,
+    category,
+    SUM(quantity * price) AS revenue,
+    SUM(quantity) AS units_sold
+FROM sales
+GROUP BY
+    DATE_FORMAT(order_date, '%Y-%m'),
+    category
+ORDER BY month, category
+"""
+
+
+# -----------------------------------------
+# 3. Execute SQL and load into Pandas
+# -----------------------------------------
+
+df = pd.read_sql(query, connection)
+
+
+# -----------------------------------------
+# 4. Close database connection
+# -----------------------------------------
+
+connection.close()
+
+
+# -----------------------------------------
+# 5. Display data
+# -----------------------------------------
+
+print("\nSales Analysis")
+print("=" * 50)
+
+print(df)
+
+
+# -----------------------------------------
+# 6. Total Revenue
+# -----------------------------------------
+
+total_revenue = df["revenue"].sum()
+
+print("\nTotal Revenue:")
+print(total_revenue)
+
+
+# -----------------------------------------
+# 7. Revenue by Category
+# -----------------------------------------
+
+category_revenue = (
+    df.groupby("category")["revenue"]
+    .sum()
+    .sort_values(ascending=False)
+)
+
+print("\nRevenue by Category:")
+print(category_revenue)
+
+
+# -----------------------------------------
+# 8. Units Sold by Category
+# -----------------------------------------
+
+category_units = (
+    df.groupby("category")["units_sold"]
+    .sum()
+    .sort_values(ascending=False)
+)
+
+print("\nUnits Sold by Category:")
+print(category_units)
+
+
+# -----------------------------------------
+# 9. Monthly Revenue
+# -----------------------------------------
+
+df["month"] = pd.to_datetime(df["month"])
+
+monthly_revenue = (
+    df.groupby("month")["revenue"]
+    .sum()
+)
+
+print("\nMonthly Revenue:")
+print(monthly_revenue)
+
+
+# -----------------------------------------
+# 10. Create Chart
+# -----------------------------------------
+
+monthly_revenue.plot(
+    kind="bar",
+    color="steelblue"
+)
+
+plt.title("Monthly Revenue")
+plt.xlabel("Month")
+plt.ylabel("Revenue")
+
+plt.xticks(rotation=45)
+
+plt.tight_layout()
+
+plt.show()
+
+8. How everything works
+The complete flow is:
+
+                    MySQL
+                      │
+                      │
+                sales_db
+                      │
+                      ▼
+                 sales table
+                      │
+                      │ SQL
+                      ▼
+              ┌───────────────┐
+              │    Python     │
+              │               │
+              │ mysql.connector
+              └───────┬───────┘
+                      │
+                      ▼
+                   Pandas
+                      │
+                      ▼
+              Data Analysis
+                      │
+                      ▼
+                Matplotlib
+                      │
+                      ▼
+                 📊 Charts
+
+So you're using:
+
+MySQL
+  ↓
+SQL
+  ↓
+Python
+  ↓
+Pandas
+  ↓
+Matplotlib
+
+9. Expected result
+When you run:
+
+python main.py
+
+you'll get something similar to:
+
+Connected to MySQL successfully!
+
+Sales Analysis
+==================================================
+
+     month       category  revenue  units_sold
+0  2026-01    Electronics   1975.0           10
+1  2026-01      Furniture    450.0            3
+2  2026-02    Electronics   1050.0           11
+3  2026-02      Furniture    600.0            2
+4  2026-03    Electronics   2650.0            8
+5  2026-03      Furniture    600.0            4
+
+
+Total Revenue:
+7325.0
+
+
+Revenue by Category:
+category
+Electronics    5675.0
+Furniture      1650.0
+Name: revenue, dtype: float64
+
+And a bar chart will appear showing:
+
+Revenue
+3000 |             █
+2500 |             █
+2000 |     █       █
+1500 |     █       █
+1000 |     █   █   █
+ 500 | █   █   █   █
+     +----------------
+       Jan Feb Mar
+
+10. Important PyCharm setup
+In PyCharm, your project should look like:
+
+sales_analysis
+│
+├── 📄 main.py
+├── 📄 database.py
+├── 📄 analysis.sql
+└── 📄 requirements.txt
+
+You don't need a sales.db file because MySQL stores the data on the MySQL server.
+
+The three important pieces
+MySQL:
+
+CREATE DATABASE sales_db;
+
+SQL:
+
+SELECT
+    category,
+    SUM(quantity * price) AS revenue
+FROM sales
+GROUP BY category;
+
+Python:
+
+df = pd.read_sql(query, connection)
+
+print(df)
+
+That's the basic pattern you'll use in many real-world Python + SQL data analyst projects.
