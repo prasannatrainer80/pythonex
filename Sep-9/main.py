@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 connection = mysql.connector.connect(
     host="localhost",
     user="root",
+    port="3307",
     password="root",
     database="sales_db"
 )
