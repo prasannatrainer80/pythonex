@@ -11,7 +11,7 @@ CREATE TABLE sales (
     price DECIMAL(10,2)
 );
 
-Now insert sample data:
+
 
 INSERT INTO sales
 (order_id, order_date, product, category, quantity, price)
