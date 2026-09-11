@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee CRUD</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<h1>Employee Management</h1>
+
+<a href="/add" class="button">Add Employee</a>
+
+<table>
+
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Department</th>
+        <th>Salary</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for employee in employees %}
+
+    <tr>
+        <td>{{ employee.id }}</td>
+        <td>{{ employee.name }}</td>
+        <td>{{ employee.email }}</td>
+        <td>{{ employee.department }}</td>
+        <td>{{ employee.salary }}</td>
+
+        <td>
+            <a href="/edit/{{ employee.id }}">Edit</a>
+
+            <a href="/delete/{{ employee.id }}"
+               onclick="return confirm('Delete this employee?')">
+               Delete
+            </a>
+        </td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+</body>
+</html>

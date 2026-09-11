@@ -1,0 +1,360 @@
+Sure. You can build a Python + MySQL CRUD application with an HTML UI in PyCharm using Flask.
+
+Project structure
+PythonMySQLCRUD/
+│
+├── app.py
+├── db.py
+├── requirements.txt
+│
+├── templates/
+│   ├── index.html
+│   ├── add.html
+│   └── edit.html
+│
+└── static/
+    └── style.css
+1. Install packages in PyCharm Terminal
+pip install flask mysql-connector-python
+2. Create MySQL database
+CREATE DATABASE employee_db;
+
+USE employee_db;
+
+CREATE TABLE employees (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100),
+    department VARCHAR(100),
+    salary DECIMAL(10,2)
+);
+3. db.py
+import mysql.connector
+
+def get_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="your_password",
+        database="employee_db"
+    )
+4. app.py
+from flask import Flask, render_template, request, redirect, url_for
+from db import get_connection
+
+app = Flask(__name__)
+
+
+@app.route("/")
+def index():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM employees")
+    employees = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template("index.html", employees=employees)
+
+
+@app.route("/add", methods=["GET", "POST"])
+def add_employee():
+
+    if request.method == "POST":
+
+        name = request.form["name"]
+        email = request.form["email"]
+        department = request.form["department"]
+        salary = request.form["salary"]
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        sql = """
+            INSERT INTO employees
+            (name, email, department, salary)
+            VALUES (%s, %s, %s, %s)
+        """
+
+        cursor.execute(sql, (name, email, department, salary))
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return redirect(url_for("index"))
+
+    return render_template("add.html")
+
+
+@app.route("/edit/<int:id>", methods=["GET", "POST"])
+def edit_employee(id):
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    if request.method == "POST":
+
+        name = request.form["name"]
+        email = request.form["email"]
+        department = request.form["department"]
+        salary = request.form["salary"]
+
+        sql = """
+            UPDATE employees
+            SET name=%s,
+                email=%s,
+                department=%s,
+                salary=%s
+            WHERE id=%s
+        """
+
+        cursor.execute(
+            sql,
+            (name, email, department, salary, id)
+        )
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return redirect(url_for("index"))
+
+    cursor.execute(
+        "SELECT * FROM employees WHERE id=%s",
+        (id,)
+    )
+
+    employee = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return render_template(
+        "edit.html",
+        employee=employee
+    )
+
+
+@app.route("/delete/<int:id>")
+def delete_employee(id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM employees WHERE id=%s",
+        (id,)
+    )
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return redirect(url_for("index"))
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
+5. templates/index.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee CRUD</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<h1>Employee Management</h1>
+
+<a href="/add" class="button">Add Employee</a>
+
+<table>
+
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Department</th>
+        <th>Salary</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for employee in employees %}
+
+    <tr>
+        <td>{{ employee.id }}</td>
+        <td>{{ employee.name }}</td>
+        <td>{{ employee.email }}</td>
+        <td>{{ employee.department }}</td>
+        <td>{{ employee.salary }}</td>
+
+        <td>
+            <a href="/edit/{{ employee.id }}">Edit</a>
+
+            <a href="/delete/{{ employee.id }}"
+               onclick="return confirm('Delete this employee?')">
+               Delete
+            </a>
+        </td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+</body>
+</html>
+6. templates/add.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Employee</title>
+</head>
+
+<body>
+
+<h2>Add Employee</h2>
+
+<form method="POST">
+
+    <label>Name</label>
+    <input type="text" name="name" required>
+
+    <br><br>
+
+    <label>Email</label>
+    <input type="email" name="email">
+
+    <br><br>
+
+    <label>Department</label>
+    <input type="text" name="department">
+
+    <br><br>
+
+    <label>Salary</label>
+    <input type="number" name="salary" step="0.01">
+
+    <br><br>
+
+    <button type="submit">Save</button>
+
+</form>
+
+<a href="/">Back</a>
+
+</body>
+</html>
+7. templates/edit.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Employee</title>
+</head>
+
+<body>
+
+<h2>Edit Employee</h2>
+
+<form method="POST">
+
+    <label>Name</label>
+    <input type="text"
+           name="name"
+           value="{{ employee.name }}"
+           required>
+
+    <br><br>
+
+    <label>Email</label>
+    <input type="email"
+           name="email"
+           value="{{ employee.email }}">
+
+    <br><br>
+
+    <label>Department</label>
+    <input type="text"
+           name="department"
+           value="{{ employee.department }}">
+
+    <br><br>
+
+    <label>Salary</label>
+    <input type="number"
+           name="salary"
+           step="0.01"
+           value="{{ employee.salary }}">
+
+    <br><br>
+
+    <button type="submit">Update</button>
+
+</form>
+
+<a href="/">Back</a>
+
+</body>
+</html>
+8. static/style.css
+body {
+    font-family: Arial;
+    margin: 40px;
+}
+
+h1 {
+    text-align: center;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background: #eee;
+}
+
+.button {
+    display: inline-block;
+    padding: 10px;
+    text-decoration: none;
+    background: #333;
+    color: white;
+}
+Run in PyCharm
+
+Run:
+
+python app.py
+
+You should see something like:
+
+Running on http://127.0.0.1:5000
+
+Open the browser at:
+
+http://127.0.0.1:5000
+
+The application will provide:
+
+Create → Read → Update → Delete
+
+with HTML UI + Python Flask + MySQL.
+
+If you're using this for a Python training/demo, I can also provide a more complete version with Bootstrap UI, search, pagination, validation, stored procedures, and a layered architecture (Controller → Service → Repository → MySQL).
