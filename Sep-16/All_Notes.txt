@@ -490,4 +490,4 @@ plt.title("Salary Distribution")
 plt.xlabel("Basic Salary")
 plt.ylabel("Number of Employees")
 
-plt.show()
+plt.show()'
