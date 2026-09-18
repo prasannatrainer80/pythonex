@@ -1,0 +1,451 @@
+ou can run this project in PyCharm.
+
+1. Project structure
+
+Create a project named FlaskMySQLCRUD:
+
+FlaskMySQLCRUD/
+│
+├── app.py
+├── requirements.txt
+│
+└── templates/
+    ├── index.html
+    ├── add.html
+    └── edit.html
+2. Install required packages
+
+Open the PyCharm terminal and execute:
+
+pip install flask mysql-connector-python
+
+Or create requirements.txt:
+
+Flask
+mysql-connector-python
+3. Database
+
+Execute your SQL script in MySQL Workbench. It creates the crt database and inserts the seven employees.
+
+Your table structure is:
+
+Empno	Name	Gender	Dept	Desig	Basic
+1	Sandhan	MALE	Java	Programmer	88223
+2	Premjeet	MALE	Sql	Expert	98222
+3	Nirmalya	MALE	Java	Developer	88224
+4	Zainab	FEMALE	Sql	Expert	77224
+5	Sourav	MALE	Dotnet	Manager	77722
+6	Ananta	MALE	Sql	Expert	82555
+7	Ishani	FEMALE	Dotnet	Expert	77223
+4. app.py — Flask application
+
+Create app.py:
+
+from flask import Flask, render_template, request, redirect, url_for
+import mysql.connector
+
+app = Flask(__name__)
+
+# MySQL connection
+def get_db_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="root",  # Change to your MySQL password
+        database="crt"
+    )
+
+
+# READ - Display all employees
+@app.route("/")
+def index():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM Employ ORDER BY Empno")
+    employees = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template("index.html", employees=employees)
+
+
+# CREATE - Add employee
+@app.route("/add", methods=["GET", "POST"])
+def add_employee():
+
+    if request.method == "POST":
+
+        empno = request.form["empno"]
+        name = request.form["name"]
+        gender = request.form["gender"]
+        dept = request.form["dept"]
+        desig = request.form["desig"]
+        basic = request.form["basic"]
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        sql = """
+        INSERT INTO Employ
+        (Empno, Name, Gender, Dept, Desig, Basic)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """
+
+        values = (empno, name, gender, dept, desig, basic)
+
+        try:
+            cursor.execute(sql, values)
+            conn.commit()
+        except mysql.connector.Error as err:
+            conn.rollback()
+            cursor.close()
+            conn.close()
+            return f"Error: {err}", 400
+
+        cursor.close()
+        conn.close()
+
+        return redirect(url_for("index"))
+
+    return render_template("add.html")
+
+
+# UPDATE - Edit employee
+@app.route("/edit/<int:empno>", methods=["GET", "POST"])
+def edit_employee(empno):
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    if request.method == "POST":
+
+        name = request.form["name"]
+        gender = request.form["gender"]
+        dept = request.form["dept"]
+        desig = request.form["desig"]
+        basic = request.form["basic"]
+
+        sql = """
+        UPDATE Employ
+        SET Name=%s,
+            Gender=%s,
+            Dept=%s,
+            Desig=%s,
+            Basic=%s
+        WHERE Empno=%s
+        """
+
+        values = (
+            name,
+            gender,
+            dept,
+            desig,
+            basic,
+            empno
+        )
+
+        cursor.execute(sql, values)
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return redirect(url_for("index"))
+
+    cursor.execute(
+        "SELECT * FROM Employ WHERE Empno=%s",
+        (empno,)
+    )
+
+    employee = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if employee is None:
+        return "Employee not found", 404
+
+    return render_template(
+        "edit.html",
+        employee=employee
+    )
+
+
+# DELETE - Delete employee
+@app.route("/delete/<int:empno>", methods=["POST"])
+def delete_employee(empno):
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM Employ WHERE Empno=%s",
+        (empno,)
+    )
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return redirect(url_for("index"))
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+Important: Change the MySQL password in get_db_connection() to your actual password.
+
+5. templates/index.html — Display employees
+
+Create a folder named templates. Inside it, create index.html.
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee CRUD</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+            background-color: #f4f6f8;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        a, button {
+            padding: 8px 15px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .add {
+            background-color: green;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #343a40;
+            color: white;
+        }
+
+        .edit {
+            background-color: orange;
+            color: black;
+        }
+
+        .delete {
+            background-color: red;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Employee Management System</h1>
+
+<a href="/add" class="add">Add Employee</a>
+
+<table>
+
+    <tr>
+        <th>Empno</th>
+        <th>Name</th>
+        <th>Gender</th>
+        <th>Department</th>
+        <th>Designation</th>
+        <th>Basic</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for emp in employees %}
+
+    <tr>
+        <td>{{ emp.Empno }}</td>
+        <td>{{ emp.Name }}</td>
+        <td>{{ emp.Gender }}</td>
+        <td>{{ emp.Dept }}</td>
+        <td>{{ emp.Desig }}</td>
+        <td>{{ emp.Basic }}</td>
+
+        <td>
+            <a href="/edit/{{ emp.Empno }}" class="edit">
+                Edit
+            </a>
+
+            <form action="/delete/{{ emp.Empno }}"
+                  method="POST"
+                  style="display:inline;"
+                  onsubmit="return confirm('Delete this employee?');">
+
+                <button type="submit" class="delete">
+                    Delete
+                </button>
+
+            </form>
+        </td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+</body>
+</html>
+6. templates/add.html — Insert employee
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Employee</title>
+</head>
+
+<body>
+
+<h2>Add Employee</h2>
+
+<form method="POST">
+
+    <label>Employee Number:</label>
+    <input type="number" name="empno" required>
+    <br><br>
+
+    <label>Name:</label>
+    <input type="text" name="name" required>
+    <br><br>
+
+    <label>Gender:</label>
+    <select name="gender" required>
+        <option value="MALE">MALE</option>
+        <option value="FEMALE">FEMALE</option>
+    </select>
+    <br><br>
+
+    <label>Department:</label>
+    <input type="text" name="dept" required>
+    <br><br>
+
+    <label>Designation:</label>
+    <input type="text" name="desig" required>
+    <br><br>
+
+    <label>Basic Salary:</label>
+    <input type="number" step="0.01" name="basic" required>
+    <br><br>
+
+    <button type="submit">Save Employee</button>
+
+</form>
+
+<br>
+
+<a href="/">Back to Employee List</a>
+
+</body>
+</html>
+7. templates/edit.html — Update employee
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Employee</title>
+</head>
+
+<body>
+
+<h2>Edit Employee</h2>
+
+<form method="POST">
+
+    <label>Employee Number:</label>
+
+    <input type="number"
+           value="{{ employee.Empno }}"
+           disabled>
+
+    <br><br>
+
+    <label>Name:</label>
+
+    <input type="text"
+           name="name"
+           value="{{ employee.Name }}"
+           required>
+
+    <br><br>
+
+    <label>Gender:</label>
+
+    <select name="gender" required>
+
+        <option value="MALE"
+            {% if employee.Gender == 'MALE' %}selected{% endif %}>
+            MALE
+        </option>
+
+        <option value="FEMALE"
+            {% if employee.Gender == 'FEMALE' %}selected{% endif %}>
+            FEMALE
+        </option>
+
+    </select>
+
+    <br><br>
+
+    <label>Department:</label>
+
+    <input type="text"
+           name="dept"
+           value="{{ employee.Dept }}"
+           required>
+
+    <br><br>
+
+    <label>Designation:</label>
+
+    <input type="text"
+           name="desig"
+           value="{{ employee.Desig }}"
+           required>
+
+    <br><br>
+
+    <label>Basic Salary:</label>
+
+    <input type="number"
+           step="0.01"
+           name="basic"
+           value="{{ employee.Basic }}"
+           required>
+
+    <br><br>
+
+    <button type="submit">Update Employee</button>
+
+</form>
+
+<br>
+
+<a href="/">Back to Employee List</a>
+
+</body>
+</html>
+8. Run the application
