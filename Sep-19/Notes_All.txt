@@ -1,0 +1,401 @@
+Yes. You can build the same Python + MySQL data-analysis dashboard in PyCharm. Here is a complete beginner-friendly project structure.
+
+1. Create project in PyCharm
+
+Open PyCharm → New Project
+
+Project name:
+
+Python_MySQL_Dashboard
+
+Create this structure:
+
+Python_MySQL_Dashboard/
+│
+├── app.py
+├── database.py
+└── requirements.txt
+2. Install packages in PyCharm
+
+Open:
+
+PyCharm → Terminal
+
+Run:
+
+pip install mysql-connector-python
+pip install pandas
+pip install matplotlib
+pip install streamlit
+
+Or put this in requirements.txt:
+
+mysql-connector-python
+pandas
+matplotlib
+streamlit
+
+Then:
+
+pip install -r requirements.txt
+3. Create MySQL database
+
+Open MySQL Workbench and execute:
+
+DROP DATABASE IF EXISTS company_db;
+
+CREATE DATABASE company_db;
+
+USE company_db;
+
+CREATE TABLE employees
+(
+    empno INT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    gender ENUM('MALE','FEMALE'),
+    dept VARCHAR(30),
+    desig VARCHAR(50),
+    basic DECIMAL(10,2)
+);
+
+INSERT INTO employees
+(empno,name,gender,dept,desig,basic)
+VALUES
+(1,'Sandhan','MALE','Java','Programmer',88223),
+(2,'Premjeet','MALE','SQL','Developer',75000),
+(3,'Anitha','FEMALE','Python','Data Analyst',92000),
+(4,'Ravi','MALE','Python','Developer',85000),
+(5,'Priya','FEMALE','Java','Programmer',78000),
+(6,'Kavya','FEMALE','SQL','Data Analyst',95000),
+(7,'Arun','MALE','Python','Senior Developer',120000),
+(8,'Sita','FEMALE','Java','Senior Developer',115000),
+(9,'Rahul','MALE','SQL','Developer',82000),
+(10,'Meena','FEMALE','Python','Data Analyst',98000);
+
+Test:
+
+SELECT * FROM employees;
+4. Create database.py
+
+In PyCharm, right-click the project → New → Python File → database.py
+
+import mysql.connector
+
+
+def get_connection():
+
+    connection = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="root",
+        database="company_db"
+    )
+
+    return connection
+Important
+
+Change:
+
+password="root"
+
+to your actual MySQL password.
+
+For example:
+
+password="mysql123"
+5. Create app.py
+
+Create another Python file called:
+
+app.py
+
+Use:
+
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from database import get_connection
+
+
+# -------------------------------------------------
+# Page Configuration
+# -------------------------------------------------
+
+st.set_page_config(
+    page_title="Employee Dashboard",
+    page_icon="📊",
+    layout="wide"
+)
+
+
+# -------------------------------------------------
+# Title
+# -------------------------------------------------
+
+st.title("📊 Employee Data Analysis Dashboard")
+
+st.write(
+    "Python + MySQL + SQL + Pandas + Matplotlib + Streamlit"
+)
+
+
+# -------------------------------------------------
+# Load Data From MySQL
+# -------------------------------------------------
+
+connection = get_connection()
+
+query = """
+SELECT
+    empno,
+    name,
+    gender,
+    dept,
+    desig,
+    basic
+FROM employees
+"""
+
+df = pd.read_sql(query, connection)
+
+connection.close()
+
+
+# -------------------------------------------------
+# Sidebar
+# -------------------------------------------------
+
+st.sidebar.header("Dashboard Filters")
+
+departments = ["All"] + sorted(
+    df["dept"].unique().tolist()
+)
+
+selected_department = st.sidebar.selectbox(
+    "Select Department",
+    departments
+)
+
+
+# -------------------------------------------------
+# Filter Data
+# -------------------------------------------------
+
+if selected_department == "All":
+
+    filtered_df = df
+
+else:
+
+    filtered_df = df[
+        df["dept"] == selected_department
+    ]
+
+
+# -------------------------------------------------
+# KPI Calculations
+# -------------------------------------------------
+
+total_employees = len(filtered_df)
+
+average_salary = filtered_df["basic"].mean()
+
+maximum_salary = filtered_df["basic"].max()
+
+minimum_salary = filtered_df["basic"].min()
+
+
+# -------------------------------------------------
+# KPI Display
+# -------------------------------------------------
+
+col1, col2, col3, col4 = st.columns(4)
+
+col1.metric(
+    "Total Employees",
+    total_employees
+)
+
+col2.metric(
+    "Average Salary",
+    f"₹{average_salary:,.0f}"
+)
+
+col3.metric(
+    "Highest Salary",
+    f"₹{maximum_salary:,.0f}"
+)
+
+col4.metric(
+    "Lowest Salary",
+    f"₹{minimum_salary:,.0f}"
+)
+
+
+st.divider()
+
+
+# -------------------------------------------------
+# Department Employee Count
+# -------------------------------------------------
+
+st.subheader("👥 Department-wise Employee Count")
+
+dept_count = (
+    filtered_df
+    .groupby("dept")
+    .size()
+    .reset_index(name="Employee_Count")
+)
+
+fig1, ax1 = plt.subplots()
+
+ax1.bar(
+    dept_count["dept"],
+    dept_count["Employee_Count"]
+)
+
+ax1.set_xlabel("Department")
+
+ax1.set_ylabel("Number of Employees")
+
+ax1.set_title(
+    "Employees by Department"
+)
+
+st.pyplot(fig1)
+
+
+# -------------------------------------------------
+# Department Average Salary
+# -------------------------------------------------
+
+st.subheader("💰 Department-wise Average Salary")
+
+dept_salary = (
+    filtered_df
+    .groupby("dept")["basic"]
+    .mean()
+    .reset_index()
+)
+
+fig2, ax2 = plt.subplots()
+
+ax2.bar(
+    dept_salary["dept"],
+    dept_salary["basic"]
+)
+
+ax2.set_xlabel("Department")
+
+ax2.set_ylabel("Average Salary")
+
+ax2.set_title(
+    "Average Salary by Department"
+)
+
+st.pyplot(fig2)
+
+
+# -------------------------------------------------
+# Employee Table
+# -------------------------------------------------
+
+st.subheader("📋 Employee Details")
+
+st.dataframe(
+    filtered_df,
+    use_container_width=True
+)
+6. Run from PyCharm
+
+Do not initially run it using the normal green Python Run button.
+
+Open:
+
+PyCharm → Terminal
+
+Run:
+
+streamlit run app.py
+
+You should see something similar to:
+
+Local URL: http://localhost:8501
+
+Open:
+
+http://localhost:8501
+7. How the project works
+             MySQL
+               |
+               |
+        employees table
+               |
+               ↓
+       database.py
+               |
+               ↓
+          app.py
+               |
+       ┌───────┴────────┐
+       ↓                ↓
+     SQL              Pandas
+       ↓                ↓
+       └───────┬────────┘
+               ↓
+          Streamlit
+               ↓
+       ┌───────────────┐
+       │   Dashboard   │
+       ├───────────────┤
+       │ KPI Cards     │
+       │               │
+       │ Bar Charts    │
+       │               │
+       │ Filters       │
+       │               │
+       │ Data Table    │
+       └───────────────┘
+8. SQL used for the dashboard
+
+You can also replace the single SELECT query with SQL analysis queries.
+
+Total employees
+SELECT COUNT(*) AS total_employees
+FROM employees;
+Average salary
+SELECT AVG(basic) AS average_salary
+FROM employees;
+Department analysis
+SELECT
+    dept,
+    COUNT(*) AS employee_count,
+    AVG(basic) AS average_salary,
+    MAX(basic) AS highest_salary,
+    MIN(basic) AS lowest_salary
+FROM employees
+GROUP BY dept;
+Highest-paid employees
+SELECT
+    name,
+    dept,
+    desig,
+    basic
+FROM employees
+ORDER BY basic DESC
+LIMIT 5;
+Gender-wise analysis
+SELECT
+    gender,
+    COUNT(*) AS employee_count,
+    AVG(basic) AS average_salary
+FROM employees
+GROUP BY gender;
+
+This gives you a good PyCharm-based Python + MySQL SQL Data Analysis Dashboard project, and the next step can be to add 5 SQL charts, 
+department/gender filters, 
+pie charts, 
+salary ranges, and a 
+login page to make it a complete mini-project.
