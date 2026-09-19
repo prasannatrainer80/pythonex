@@ -58,3 +58,8 @@ st.sidebar.header("Dashboard Filters")
 departments = ["All"] + sorted(
     df["dept"].unique().tolist()
 )
+
+selected_department = st.sidebar.selectbox(
+    "Select Department",
+    departments
+)
