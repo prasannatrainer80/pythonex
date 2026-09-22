@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>Bank Management System</title>
+
+    <style>
+
+        body {
+            font-family: Arial;
+            background-color: #f2f2f2;
+            text-align: center;
+        }
+
+        h1 {
+            color: #1f4e79;
+        }
+
+        .circle {
+
+            width: 550px;
+            height: 550px;
+
+            border: 5px solid #1f4e79;
+
+            border-radius: 50%;
+
+            margin: 30px auto;
+
+            position: relative;
+
+            background-color: white;
+
+        }
+
+        .module {
+
+            position: absolute;
+
+            width: 150px;
+
+            padding: 15px;
+
+            background-color: #1f4e79;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 10px;
+
+            font-weight: bold;
+
+        }
+
+        .module:hover {
+
+            background-color: #163a5c;
+
+        }
+
+        .create {
+
+            top: 15px;
+            left: 190px;
+
+        }
+
+        .search {
+
+            top: 115px;
+            right: 10px;
+
+        }
+
+        .update {
+
+            bottom: 115px;
+            right: 10px;
+
+        }
+
+        .deposit {
+
+            bottom: 15px;
+            left: 190px;
+
+        }
+
+        .withdraw {
+
+            bottom: 115px;
+            left: 10px;
+
+        }
+
+        .close {
+
+            top: 115px;
+            left: 10px;
+
+        }
+
+        .center {
+
+            position: absolute;
+
+            top: 210px;
+            left: 185px;
+
+            width: 180px;
+            height: 100px;
+
+            border-radius: 50%;
+
+            background-color: #d9eaf7;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            font-weight: bold;
+
+            color: #1f4e79;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <h1>Bank Management System</h1>
+
+    <div class="circle">
+
+        <a href="{{ url_for('createAccount') }}"
+           class="module create">
+            Create Account
+        </a>
+
+        <a href="{{ url_for('searchAccount') }}"
+           class="module search">
+            Search Account
+        </a>
+
+        <a href="{{ url_for('updateAccount') }}"
+           class="module update">
+            Update Account
+        </a>
+
+        <a href="{{ url_for('depositAccount') }}"
+           class="module deposit">
+            Deposit Account
+        </a>
+
+        <a href="{{ url_for('withdrawAccount') }}"
+           class="module withdraw">
+            Withdraw Account
+        </a>
+
+        <a href="{{ url_for('closeAccount') }}"
+           class="module close">
+            Close Account
+        </a>
+
+        <div class="center">
+
+            BANK<br>
+            OPERATIONS
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
