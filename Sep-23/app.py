@@ -655,3 +655,350 @@ if not attendance_df.empty:
 
 
 st.divider()
+
+# ==========================================================
+# MARKS ANALYSIS
+# ==========================================================
+
+st.header("📚 Marks Analysis")
+
+
+col1, col2 = st.columns(2)
+
+
+# ----------------------------------------------------------
+# SUBJECT-WISE MARKS
+# ----------------------------------------------------------
+
+with col1:
+
+    if not marks_df.empty:
+
+        fig, ax = plt.subplots()
+
+        ax.bar(
+            marks_df["Subject"],
+            marks_df["TotalMarks"]
+        )
+
+        ax.set_title(
+            "Subject-wise Total Marks"
+        )
+
+        ax.set_xlabel(
+            "Subject"
+        )
+
+        ax.set_ylabel(
+            "Total Marks"
+        )
+
+        plt.xticks(
+            rotation=30
+        )
+
+        st.pyplot(
+            fig
+        )
+
+    else:
+
+        st.warning(
+            "Marks data not available."
+        )
+
+
+# ----------------------------------------------------------
+# MARKS SUMMARY
+# ----------------------------------------------------------
+
+with col2:
+
+    st.subheader(
+        "Marks Summary"
+    )
+
+    st.metric(
+        "Total Marks",
+        total_marks
+    )
+
+    st.metric(
+        "Average Marks",
+        average_marks
+    )
+
+    st.metric(
+        "Highest Marks",
+        highest_marks
+    )
+
+    st.metric(
+        "Lowest Marks",
+        lowest_marks
+    )
+
+
+# ==========================================================
+# INTERNAL VS EXTERNAL
+# ==========================================================
+
+st.subheader(
+    "📖 Internal vs External Marks"
+)
+
+
+if not marks_df.empty:
+
+    fig, ax = plt.subplots()
+
+    x = range(
+        len(marks_df)
+    )
+
+    width = 0.35
+
+
+    ax.bar(
+        [
+            i - width / 2
+            for i in x
+        ],
+
+        marks_df[
+            "InternalMarks"
+        ],
+
+        width,
+
+        label="Internal"
+    )
+
+
+    ax.bar(
+        [
+            i + width / 2
+            for i in x
+        ],
+
+        marks_df[
+            "ExternalMarks"
+        ],
+
+        width,
+
+        label="External"
+    )
+
+
+    ax.set_xticks(
+        list(x)
+    )
+
+    ax.set_xticklabels(
+        marks_df["Subject"],
+        rotation=30
+    )
+
+    ax.set_ylabel(
+        "Marks"
+    )
+
+    ax.set_title(
+        "Internal vs External Marks"
+    )
+
+    ax.legend()
+
+    st.pyplot(
+        fig
+    )
+
+
+# ==========================================================
+# MARKS TABLE
+# ==========================================================
+
+st.subheader(
+    "Subject-wise Marks Details"
+)
+
+
+if not marks_df.empty:
+
+    st.dataframe(
+        marks_df,
+        use_container_width=True,
+        hide_index=True
+    )
+
+
+st.divider()
+
+
+# ==========================================================
+# FEE ANALYSIS
+# ==========================================================
+
+st.header("💰 Fee Payment Analysis")
+
+
+col1, col2, col3 = st.columns(3)
+
+
+with col1:
+
+    st.metric(
+        "Total Fee",
+        f"₹{total_fee:,.2f}"
+    )
+
+
+with col2:
+
+    st.metric(
+        "Paid Amount",
+        f"₹{paid_fee:,.2f}"
+    )
+
+
+with col3:
+
+    st.metric(
+        "Balance",
+        f"₹{balance_fee:,.2f}"
+    )
+
+
+# ----------------------------------------------------------
+# FEE PIE CHART
+# ----------------------------------------------------------
+
+if total_fee > 0:
+
+    fig, ax = plt.subplots()
+
+    values = [
+        paid_fee,
+        balance_fee
+    ]
+
+    labels = [
+        "Paid",
+        "Balance"
+    ]
+
+    ax.pie(
+        values,
+        labels=labels,
+        autopct="%1.1f%%"
+    )
+
+    ax.set_title(
+        "Fee Payment Status"
+    )
+
+    st.pyplot(
+        fig
+    )
+
+
+st.divider()
+
+
+# ==========================================================
+# PERFORMANCE ANALYSIS
+# ==========================================================
+
+st.header("📈 Overall Performance Analysis")
+
+
+col1, col2, col3 = st.columns(3)
+
+
+# ----------------------------------------------------------
+# ATTENDANCE STATUS
+# ----------------------------------------------------------
+
+with col1:
+
+    st.subheader(
+        "Attendance Status"
+    )
+
+    if attendance_percentage >= 75:
+
+        st.success(
+            "Attendance is above 75%"
+        )
+
+    else:
+
+        st.warning(
+            "Attendance is below 75%"
+        )
+
+
+# ----------------------------------------------------------
+# ACADEMIC STATUS
+# ----------------------------------------------------------
+
+with col2:
+
+    st.subheader(
+        "Academic Status"
+    )
+
+    if average_marks >= 75:
+
+        st.success(
+            "Good Academic Performance"
+        )
+
+    elif average_marks >= 50:
+
+        st.warning(
+            "Average Academic Performance"
+        )
+
+    else:
+
+        st.error(
+            "Needs Improvement"
+        )
+
+
+# ----------------------------------------------------------
+# FEE STATUS
+# ----------------------------------------------------------
+
+with col3:
+
+    st.subheader(
+        "Fee Status"
+    )
+
+    if balance_fee == 0:
+
+        st.success(
+            "Fee Fully Paid"
+        )
+
+    else:
+
+        st.warning(
+            f"Fee Balance: ₹{balance_fee:,.2f}"
+        )
+
+
+st.divider()
+
+
+# ==========================================================
+# FOOTER
+# ==========================================================
+
+st.caption(
+    "Student Management System | "
+    "Python + Streamlit + MySQL + Pandas + Matplotlib"
+)
