@@ -244,3 +244,111 @@ selected_student = st.sidebar.selectbox(
 student_id = int(
     selected_student.split(" - ")[0]
 )
+
+# ==========================================================
+# LOAD STUDENT DATA
+# ==========================================================
+
+student_df = get_student(
+    student_id
+)
+
+# ==========================================================
+# CHECK STUDENT
+# ==========================================================
+
+if student_df.empty:
+
+    st.error(
+        "Student details not found."
+    )
+
+    st.stop()
+
+
+# Convert first row into dictionary
+
+student = student_df.iloc[0]
+
+
+# ==========================================================
+# STUDENT INFORMATION
+# ==========================================================
+
+st.header("👨‍🎓 Student Information")
+
+
+col1, col2, col3, col4 = st.columns(4)
+
+
+with col1:
+
+    st.write("**Student ID**")
+
+    st.info(
+        student["StudentId"]
+    )
+
+
+with col2:
+
+    st.write("**Student Name**")
+
+    st.info(
+        student["StudentName"]
+    )
+
+
+with col3:
+
+    st.write("**Course**")
+
+    st.info(
+        student["Course"]
+    )
+
+
+with col4:
+
+    st.write("**Year**")
+
+    st.info(
+        student["Year"]
+    )
+
+
+# ----------------------------------------------------------
+# SECOND ROW
+# ----------------------------------------------------------
+
+col1, col2, col3 = st.columns(3)
+
+
+with col1:
+
+    st.write("**Gender**")
+
+    st.info(
+        student["Gender"]
+    )
+
+
+with col2:
+
+    st.write("**Email**")
+
+    st.info(
+        student["Email"]
+    )
+
+
+with col3:
+
+    st.write("**Phone**")
+
+    st.info(
+        student["Phone"]
+    )
+
+
+st.divider()
