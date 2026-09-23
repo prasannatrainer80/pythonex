@@ -236,6 +236,19 @@ selected_student = st.sidebar.selectbox(
     student_options
 )
 
+# ==========================================================
+# GET SELECTED STUDENT ID
+# ==========================================================
+
+student_id = int(
+    selected_student.split(" - ")[0]
+)
+
+
+marks_df = get_marks(
+    student_id
+)
+
 
 # ==========================================================
 # GET SELECTED STUDENT ID
@@ -253,6 +266,9 @@ student_df = get_student(
     student_id
 )
 
+fee_df = get_fees(
+    student_id
+)
 # ==========================================================
 # CHECK STUDENT
 # ==========================================================
@@ -348,6 +364,293 @@ with col3:
 
     st.info(
         student["Phone"]
+    )
+
+
+st.divider()
+
+attendance_df = get_attendance(
+    student_id
+)
+
+# ==========================================================
+# FEE ANALYSIS
+# ==========================================================
+
+if not fee_df.empty:
+
+    total_fee = float(
+        fee_df[
+            "TotalFee"
+        ].iloc[0]
+    )
+
+    paid_fee = float(
+        fee_df[
+            "PaidAmount"
+        ].iloc[0]
+    )
+
+    balance_fee = float(
+        fee_df[
+            "Balance"
+        ].iloc[0]
+    )
+
+else:
+
+    total_fee = 0
+
+    paid_fee = 0
+
+    balance_fee = 0
+
+
+
+# ==========================================================
+# ATTENDANCE ANALYSIS
+# ==========================================================
+
+if not attendance_df.empty:
+
+    total_days = attendance_df[
+        "TotalDays"
+    ].sum()
+
+    present_days = attendance_df[
+        "PresentDays"
+    ].sum()
+
+    absent_days = (
+        total_days
+        -
+        present_days
+    )
+
+    attendance_percentage = round(
+        present_days
+        /
+        total_days
+        *
+        100,
+        2
+    )
+
+else:
+
+    total_days = 0
+
+    present_days = 0
+
+    absent_days = 0
+
+    attendance_percentage = 0
+
+# ==========================================================
+# MARKS ANALYSIS
+# ==========================================================
+
+if not marks_df.empty:
+
+    total_marks = int(
+        marks_df[
+            "TotalMarks"
+        ].sum()
+    )
+
+    average_marks = round(
+        marks_df[
+            "TotalMarks"
+        ].mean(),
+        2
+    )
+
+    highest_marks = int(
+        marks_df[
+            "TotalMarks"
+        ].max()
+    )
+
+    lowest_marks = int(
+        marks_df[
+            "TotalMarks"
+        ].min()
+    )
+
+else:
+
+    total_marks = 0
+
+    average_marks = 0
+
+    highest_marks = 0
+
+    lowest_marks = 0
+
+
+# ==========================================================
+# DASHBOARD KPI CARDS
+# ==========================================================
+
+st.header("📊 Student Dashboard")
+
+
+col1, col2, col3, col4, col5 = st.columns(5)
+
+
+with col1:
+
+    st.metric(
+        "Attendance",
+        f"{attendance_percentage}%"
+    )
+
+
+with col2:
+
+    st.metric(
+        "Present Days",
+        present_days
+    )
+
+
+with col3:
+
+    st.metric(
+        "Total Marks",
+        total_marks
+    )
+
+
+with col4:
+
+    st.metric(
+        "Average Marks",
+        average_marks
+    )
+
+
+with col5:
+
+    st.metric(
+        "Fee Balance",
+        f"₹{balance_fee:,.2f}"
+    )
+
+
+st.divider()
+
+
+# ==========================================================
+# ATTENDANCE SECTION
+# ==========================================================
+
+st.header("📅 Attendance Analysis")
+
+
+col1, col2 = st.columns(2)
+
+
+# ----------------------------------------------------------
+# ATTENDANCE CHART
+# ----------------------------------------------------------
+
+with col1:
+
+    if not attendance_df.empty:
+
+        fig, ax = plt.subplots()
+
+        ax.plot(
+            attendance_df["MonthName"],
+            attendance_df[
+                "AttendancePercentage"
+            ],
+            marker="o"
+        )
+
+        ax.set_title(
+            "Monthly Attendance"
+        )
+
+        ax.set_xlabel(
+            "Month"
+        )
+
+        ax.set_ylabel(
+            "Attendance %"
+        )
+
+        ax.set_ylim(
+            0,
+            100
+        )
+
+        ax.grid(
+            True
+        )
+
+        plt.xticks(
+            rotation=30
+        )
+
+        st.pyplot(
+            fig
+        )
+
+    else:
+
+        st.warning(
+            "Attendance data not available."
+        )
+
+
+# ----------------------------------------------------------
+# ATTENDANCE SUMMARY
+# ----------------------------------------------------------
+
+with col2:
+
+    st.subheader(
+        "Attendance Summary"
+    )
+
+    st.metric(
+        "Total Working Days",
+        total_days
+    )
+
+    st.metric(
+        "Present Days",
+        present_days
+    )
+
+    st.metric(
+        "Absent Days",
+        absent_days
+    )
+
+    st.metric(
+        "Attendance %",
+        f"{attendance_percentage}%"
+    )
+
+
+# ==========================================================
+# ATTENDANCE TABLE
+# ==========================================================
+
+st.subheader(
+    "Monthly Attendance Details"
+)
+
+
+if not attendance_df.empty:
+
+    st.dataframe(
+        attendance_df,
+        use_container_width=True,
+        hide_index=True
     )
 
 
