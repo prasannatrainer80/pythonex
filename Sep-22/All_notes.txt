@@ -1,0 +1,1334 @@
+Below is the entire Flask + MySQL code for your banknew project, using your requested Java-style generateAccountNo() and assigning it to accno inside createAccount().
+
+The six modules are:
+
+createAccount
+searchAccount
+updateAccount
+depositAccount
+withdrawAccount
+closeAccount
+
+The UI also has the circular dashboard flow.
+
+1. Project Structure
+
+Create this structure in PyCharm:
+
+BankFlask
+│
+├── app.py
+├── db.py
+│
+└── templates
+    │
+    ├── index.html
+    ├── create_account.html
+    ├── search_account.html
+    ├── update_account.html
+    ├── deposit_account.html
+    ├── withdraw_account.html
+    ├── close_account.html
+    └── result.html
+2. MySQL Database
+
+Run this complete SQL first.
+
+DROP DATABASE IF EXISTS banknew;
+
+CREATE DATABASE banknew;
+
+USE banknew;
+
+CREATE TABLE Accounts
+(
+    AccountNo INT PRIMARY KEY,
+    AccHolderName VARCHAR(30),
+    UserName VARCHAR(30) UNIQUE,
+    Passcode VARCHAR(30),
+    Email VARCHAR(30) UNIQUE,
+    MobileNo VARCHAR(20) UNIQUE,
+    Amount NUMERIC(9,2)
+);
+
+CREATE TABLE Trans
+(
+    TranID INT PRIMARY KEY AUTO_INCREMENT,
+    AccountNo INT,
+    TranAmount NUMERIC(9,2),
+    TranType VARCHAR(5),
+    FOREIGN KEY (AccountNo) REFERENCES Accounts(AccountNo)
+);
+
+INSERT INTO Accounts
+(AccHolderName, UserName, Passcode, Email, MobileNo, Amount)
+VALUES
+('Geethika','Geethika12','Vuppala',
+ 'Geethika@gmail.com','9999888812',88234.22),
+
+('Nitisha','Nitisha1','Sagar',
+ 'Nitisha@gmail.com','8888999913',88222.22);
+
+I have intentionally removed AUTO_INCREMENT from AccountNo because you specifically want:
+
+accno = generateAccountNo()
+
+to generate and assign the account number.
+
+3. db.py
+import mysql.connector
+
+
+def get_connection():
+
+    connection = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="root",
+        database="banknew"
+    )
+
+    return connection
+
+Change:
+
+password="root"
+
+to your actual MySQL password.
+
+4. app.py
+
+This is the complete Python Flask program.
+
+from flask import Flask, render_template, request
+from db import get_connection
+
+app = Flask(__name__)
+
+
+# =========================================================
+# GENERATE ACCOUNT NUMBER
+# =========================================================
+
+def generateAccountNo():
+
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+    sql = """
+        SELECT CASE
+        WHEN MAX(AccountNo) IS NULL THEN 1
+        ELSE MAX(AccountNo) + 1
+        END AS accno
+        FROM Accounts
+    """
+
+    cursor.execute(sql)
+
+    row = cursor.fetchone()
+
+    cursor.close()
+
+    connection.close()
+
+    return row[0]
+
+
+# =========================================================
+# HOME / DASHBOARD
+# =========================================================
+
+@app.route("/")
+def index():
+
+    return render_template("index.html")
+
+
+# =========================================================
+# CREATE ACCOUNT
+# =========================================================
+
+@app.route("/createAccount", methods=["GET", "POST"])
+def createAccount():
+
+    if request.method == "POST":
+
+        # Generate Account Number
+        accno = generateAccountNo()
+
+        # Get form values
+        name = request.form["name"]
+        username = request.form["username"]
+        passcode = request.form["passcode"]
+        email = request.form["email"]
+        mobile = request.form["mobile"]
+        amount = request.form["amount"]
+
+        connection = get_connection()
+
+        cursor = connection.cursor()
+
+        sql = """
+            INSERT INTO Accounts
+            (
+                AccountNo,
+                AccHolderName,
+                UserName,
+                Passcode,
+                Email,
+                MobileNo,
+                Amount
+            )
+            VALUES
+            (%s, %s, %s, %s, %s, %s, %s)
+        """
+
+        values = (
+            accno,
+            name,
+            username,
+            passcode,
+            email,
+            mobile,
+            amount
+        )
+
+        cursor.execute(sql, values)
+
+        connection.commit()
+
+        cursor.close()
+
+        connection.close()
+
+        return render_template(
+            "result.html",
+            message="Account Created with Account No " + str(accno)
+        )
+
+    return render_template("create_account.html")
+
+
+# =========================================================
+# SEARCH ACCOUNT
+# =========================================================
+
+@app.route("/searchAccount", methods=["GET", "POST"])
+def searchAccount():
+
+    account = None
+
+    if request.method == "POST":
+
+        accno = request.form["account_no"]
+
+        connection = get_connection()
+
+        cursor = connection.cursor(dictionary=True)
+
+        sql = """
+            SELECT *
+            FROM Accounts
+            WHERE AccountNo = %s
+        """
+
+        cursor.execute(sql, (accno,))
+
+        account = cursor.fetchone()
+
+        cursor.close()
+
+        connection.close()
+
+    return render_template(
+        "search_account.html",
+        account=account
+    )
+
+
+# =========================================================
+# UPDATE ACCOUNT
+# =========================================================
+
+@app.route("/updateAccount", methods=["GET", "POST"])
+def updateAccount():
+
+    if request.method == "POST":
+
+        accno = request.form["account_no"]
+
+        name = request.form["name"]
+
+        username = request.form["username"]
+
+        passcode = request.form["passcode"]
+
+        email = request.form["email"]
+
+        mobile = request.form["mobile"]
+
+        connection = get_connection()
+
+        cursor = connection.cursor()
+
+        sql = """
+            UPDATE Accounts
+            SET
+                AccHolderName = %s,
+                UserName = %s,
+                Passcode = %s,
+                Email = %s,
+                MobileNo = %s
+            WHERE AccountNo = %s
+        """
+
+        values = (
+            name,
+            username,
+            passcode,
+            email,
+            mobile,
+            accno
+        )
+
+        cursor.execute(sql, values)
+
+        connection.commit()
+
+        cursor.close()
+
+        connection.close()
+
+        return render_template(
+            "result.html",
+            message="Account Updated Successfully"
+        )
+
+    return render_template("update_account.html")
+
+
+# =========================================================
+# DEPOSIT ACCOUNT
+# =========================================================
+
+@app.route("/depositAccount", methods=["GET", "POST"])
+def depositAccount():
+
+    if request.method == "POST":
+
+        accno = request.form["account_no"]
+
+        deposit_amount = request.form["amount"]
+
+        connection = get_connection()
+
+        cursor = connection.cursor()
+
+        # Update balance
+        sql = """
+            UPDATE Accounts
+            SET Amount = Amount + %s
+            WHERE AccountNo = %s
+        """
+
+        cursor.execute(
+            sql,
+            (deposit_amount, accno)
+        )
+
+        # Insert transaction
+        sql = """
+            INSERT INTO Trans
+            (AccountNo, TranAmount, TranType)
+            VALUES (%s, %s, %s)
+        """
+
+        cursor.execute(
+            sql,
+            (accno, deposit_amount, "C")
+        )
+
+        connection.commit()
+
+        cursor.close()
+
+        connection.close()
+
+        return render_template(
+            "result.html",
+            message="Amount Credited Successfully"
+        )
+
+    return render_template("deposit_account.html")
+
+
+# =========================================================
+# WITHDRAW ACCOUNT
+# =========================================================
+
+@app.route("/withdrawAccount", methods=["GET", "POST"])
+def withdrawAccount():
+
+    if request.method == "POST":
+
+        accno = request.form["account_no"]
+
+        withdraw_amount = request.form["amount"]
+
+        connection = get_connection()
+
+        cursor = connection.cursor()
+
+        # Check current balance
+        sql = """
+            SELECT Amount
+            FROM Accounts
+            WHERE AccountNo = %s
+        """
+
+        cursor.execute(sql, (accno,))
+
+        row = cursor.fetchone()
+
+        if row is None:
+
+            cursor.close()
+
+            connection.close()
+
+            return render_template(
+                "result.html",
+                message="Account Not Found"
+            )
+
+        balance = row[0]
+
+        if balance < float(withdraw_amount):
+
+            cursor.close()
+
+            connection.close()
+
+            return render_template(
+                "result.html",
+                message="Insufficient Balance"
+            )
+
+        # Update balance
+        sql = """
+            UPDATE Accounts
+            SET Amount = Amount - %s
+            WHERE AccountNo = %s
+        """
+
+        cursor.execute(
+            sql,
+            (withdraw_amount, accno)
+        )
+
+        # Insert transaction
+        sql = """
+            INSERT INTO Trans
+            (AccountNo, TranAmount, TranType)
+            VALUES (%s, %s, %s)
+        """
+
+        cursor.execute(
+            sql,
+            (accno, withdraw_amount, "D")
+        )
+
+        connection.commit()
+
+        cursor.close()
+
+        connection.close()
+
+        return render_template(
+            "result.html",
+            message="Amount Debited Successfully"
+        )
+
+    return render_template("withdraw_account.html")
+
+
+# =========================================================
+# CLOSE ACCOUNT
+# =========================================================
+
+@app.route("/closeAccount", methods=["GET", "POST"])
+def closeAccount():
+
+    if request.method == "POST":
+
+        accno = request.form["account_no"]
+
+        connection = get_connection()
+
+        cursor = connection.cursor()
+
+        # First delete transactions
+        sql = """
+            DELETE FROM Trans
+            WHERE AccountNo = %s
+        """
+
+        cursor.execute(sql, (accno,))
+
+        # Then delete account
+        sql = """
+            DELETE FROM Accounts
+            WHERE AccountNo = %s
+        """
+
+        cursor.execute(sql, (accno,))
+
+        connection.commit()
+
+        cursor.close()
+
+        connection.close()
+
+        return render_template(
+            "result.html",
+            message="Account Closed Successfully"
+        )
+
+    return render_template("close_account.html")
+
+
+# =========================================================
+# START FLASK APPLICATION
+# =========================================================
+
+if __name__ == "__main__":
+
+    app.run(debug=True)
+5. index.html
+
+This creates your circular bank operations UI.
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>Bank Management System</title>
+
+    <style>
+
+        body {
+            font-family: Arial;
+            background-color: #f2f2f2;
+            text-align: center;
+        }
+
+        h1 {
+            color: #1f4e79;
+        }
+
+        .circle {
+
+            width: 550px;
+            height: 550px;
+
+            border: 5px solid #1f4e79;
+
+            border-radius: 50%;
+
+            margin: 30px auto;
+
+            position: relative;
+
+            background-color: white;
+
+        }
+
+        .module {
+
+            position: absolute;
+
+            width: 150px;
+
+            padding: 15px;
+
+            background-color: #1f4e79;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 10px;
+
+            font-weight: bold;
+
+        }
+
+        .module:hover {
+
+            background-color: #163a5c;
+
+        }
+
+        .create {
+
+            top: 15px;
+            left: 190px;
+
+        }
+
+        .search {
+
+            top: 115px;
+            right: 10px;
+
+        }
+
+        .update {
+
+            bottom: 115px;
+            right: 10px;
+
+        }
+
+        .deposit {
+
+            bottom: 15px;
+            left: 190px;
+
+        }
+
+        .withdraw {
+
+            bottom: 115px;
+            left: 10px;
+
+        }
+
+        .close {
+
+            top: 115px;
+            left: 10px;
+
+        }
+
+        .center {
+
+            position: absolute;
+
+            top: 210px;
+            left: 185px;
+
+            width: 180px;
+            height: 100px;
+
+            border-radius: 50%;
+
+            background-color: #d9eaf7;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            font-weight: bold;
+
+            color: #1f4e79;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <h1>Bank Management System</h1>
+
+    <div class="circle">
+
+        <a href="{{ url_for('createAccount') }}"
+           class="module create">
+            Create Account
+        </a>
+
+        <a href="{{ url_for('searchAccount') }}"
+           class="module search">
+            Search Account
+        </a>
+
+        <a href="{{ url_for('updateAccount') }}"
+           class="module update">
+            Update Account
+        </a>
+
+        <a href="{{ url_for('depositAccount') }}"
+           class="module deposit">
+            Deposit Account
+        </a>
+
+        <a href="{{ url_for('withdrawAccount') }}"
+           class="module withdraw">
+            Withdraw Account
+        </a>
+
+        <a href="{{ url_for('closeAccount') }}"
+           class="module close">
+            Close Account
+        </a>
+
+        <div class="center">
+
+            BANK<br>
+            OPERATIONS
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
+6. create_account.html
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>Create Account</title>
+
+</head>
+
+<body>
+
+<center>
+
+<h2>Create Account</h2>
+
+<form method="POST">
+
+    <table>
+
+        <tr>
+            <td>Account Holder Name</td>
+
+            <td>
+                <input type="text"
+                       name="name">
+            </td>
+        </tr>
+
+        <tr>
+            <td>Username</td>
+
+            <td>
+                <input type="text"
+                       name="username">
+            </td>
+        </tr>
+
+        <tr>
+            <td>Passcode</td>
+
+            <td>
+                <input type="password"
+                       name="passcode">
+            </td>
+        </tr>
+
+        <tr>
+            <td>Email</td>
+
+            <td>
+                <input type="text"
+                       name="email">
+            </td>
+        </tr>
+
+        <tr>
+            <td>Mobile No</td>
+
+            <td>
+                <input type="text"
+                       name="mobile">
+            </td>
+        </tr>
+
+        <tr>
+            <td>Amount</td>
+
+            <td>
+                <input type="text"
+                       name="amount">
+            </td>
+        </tr>
+
+        <tr>
+
+            <td colspan="2"
+                align="center">
+
+                <input type="submit"
+                       value="Create Account">
+
+            </td>
+
+        </tr>
+
+    </table>
+
+</form>
+
+<br>
+
+<a href="{{ url_for('index') }}">
+    Back to Dashboard
+</a>
+
+</center>
+
+</body>
+
+</html>
+7. search_account.html
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>Search Account</title>
+
+</head>
+
+<body>
+
+<center>
+
+<h2>Search Account</h2>
+
+<form method="POST">
+
+    Account No:
+
+    <input type="text"
+           name="account_no">
+
+    <input type="submit"
+           value="Search">
+
+</form>
+
+
+{% if account %}
+
+<hr>
+
+<h3>Account Details</h3>
+
+<table border="1"
+       cellpadding="10">
+
+    <tr>
+        <th>Account No</th>
+        <td>{{ account.AccountNo }}</td>
+    </tr>
+
+    <tr>
+        <th>Account Holder</th>
+        <td>{{ account.AccHolderName }}</td>
+    </tr>
+
+    <tr>
+        <th>Username</th>
+        <td>{{ account.UserName }}</td>
+    </tr>
+
+    <tr>
+        <th>Passcode</th>
+        <td>{{ account.Passcode }}</td>
+    </tr>
+
+    <tr>
+        <th>Email</th>
+        <td>{{ account.Email }}</td>
+    </tr>
+
+    <tr>
+        <th>Mobile No</th>
+        <td>{{ account.MobileNo }}</td>
+    </tr>
+
+    <tr>
+        <th>Amount</th>
+        <td>{{ account.Amount }}</td>
+    </tr>
+
+</table>
+
+{% else %}
+
+    {% if request.method == "POST" %}
+
+        <h3>Account Not Found</h3>
+
+    {% endif %}
+
+{% endif %}
+
+<br>
+
+<a href="{{ url_for('index') }}">
+    Back to Dashboard
+</a>
+
+</center>
+
+</body>
+
+</html>
+8. update_account.html
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>Update Account</title>
+
+</head>
+
+<body>
+
+<center>
+
+<h2>Update Account</h2>
+
+<form method="POST">
+
+<table>
+
+<tr>
+
+<td>Account No</td>
+
+<td>
+<input type="text"
+       name="account_no">
+</td>
+
+</tr>
+
+<tr>
+
+<td>Account Holder Name</td>
+
+<td>
+<input type="text"
+       name="name">
+</td>
+
+</tr>
+
+<tr>
+
+<td>Username</td>
+
+<td>
+<input type="text"
+       name="username">
+</td>
+
+</tr>
+
+<tr>
+
+<td>Passcode</td>
+
+<td>
+<input type="password"
+       name="passcode">
+</td>
+
+</tr>
+
+<tr>
+
+<td>Email</td>
+
+<td>
+<input type="text"
+       name="email">
+</td>
+
+</tr>
+
+<tr>
+
+<td>Mobile No</td>
+
+<td>
+<input type="text"
+       name="mobile">
+</td>
+
+</tr>
+
+<tr>
+
+<td colspan="2"
+    align="center">
+
+<input type="submit"
+       value="Update Account">
+
+</td>
+
+</tr>
+
+</table>
+
+</form>
+
+<br>
+
+<a href="{{ url_for('index') }}">
+    Back to Dashboard
+</a>
+
+</center>
+
+</body>
+
+</html>
+9. deposit_account.html
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>Deposit Account</title>
+
+</head>
+
+<body>
+
+<center>
+
+<h2>Deposit Account</h2>
+
+<form method="POST">
+
+<table>
+
+<tr>
+
+<td>Account No</td>
+
+<td>
+<input type="text"
+       name="account_no">
+</td>
+
+</tr>
+
+<tr>
+
+<td>Deposit Amount</td>
+
+<td>
+<input type="text"
+       name="amount">
+</td>
+
+</tr>
+
+<tr>
+
+<td colspan="2"
+    align="center">
+
+<input type="submit"
+       value="Deposit">
+
+</td>
+
+</tr>
+
+</table>
+
+</form>
+
+<br>
+
+<a href="{{ url_for('index') }}">
+    Back to Dashboard
+</a>
+
+</center>
+
+</body>
+
+</html>
+10. withdraw_account.html
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>Withdraw Account</title>
+
+</head>
+
+<body>
+
+<center>
+
+<h2>Withdraw Account</h2>
+
+<form method="POST">
+
+<table>
+
+<tr>
+
+<td>Account No</td>
+
+<td>
+<input type="text"
+       name="account_no">
+</td>
+
+</tr>
+
+<tr>
+
+<td>Withdraw Amount</td>
+
+<td>
+<input type="text"
+       name="amount">
+</td>
+
+</tr>
+
+<tr>
+
+<td colspan="2"
+    align="center">
+
+<input type="submit"
+       value="Withdraw">
+
+</td>
+
+</tr>
+
+</table>
+
+</form>
+
+<br>
+
+<a href="{{ url_for('index') }}">
+    Back to Dashboard
+</a>
+
+</center>
+
+</body>
+
+</html>
+11. close_account.html
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>Close Account</title>
+
+</head>
+
+<body>
+
+<center>
+
+<h2>Close Account</h2>
+
+<form method="POST">
+
+<table>
+
+<tr>
+
+<td>Account No</td>
+
+<td>
+<input type="text"
+       name="account_no">
+</td>
+
+</tr>
+
+<tr>
+
+<td colspan="2"
+    align="center">
+
+<input type="submit"
+       value="Close Account">
+
+</td>
+
+</tr>
+
+</table>
+
+</form>
+
+<br>
+
+<a href="{{ url_for('index') }}">
+    Back to Dashboard
+</a>
+
+</center>
+
+</body>
+
+</html>
+12. result.html
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>Bank Result</title>
+
+</head>
+
+<body>
+
+<center>
+
+<h2>{{ message }}</h2>
+
+<br>
+
+<a href="{{ url_for('index') }}">
+    Back to Dashboard
+</a>
+
+</center>
+
+</body>
+
+</html>
+13. How generateAccountNo() works
+
+Your original Java code was:
+
+int id = generateAccountNo();
+accounts.setAccountNo(id);
+
+The equivalent Python code is:
+
+accno = generateAccountNo()
+
+The function:
+
+def generateAccountNo():
+
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+    sql = """
+        SELECT CASE
+        WHEN MAX(AccountNo) IS NULL THEN 1
+        ELSE MAX(AccountNo) + 1
+        END AS accno
+        FROM Accounts
+    """
+
+    cursor.execute(sql)
+
+    row = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    return row[0]
+
+Then in createAccount():
+
+accno = generateAccountNo()
+
+and finally:
+
+cursor.execute(sql, (
+    accno,
+    name,
+    username,
+    passcode,
+    email,
+    mobile,
+    amount
+))
+
+So if your database currently contains:
+
+AccountNo
+---------
+1
+2
+
+then:
+
+accno = generateAccountNo()
+
+returns:
+
+3
+
+and the new record gets:
+
+AccountNo = 3
+Complete flow
+                    ┌─────────────────┐
+                    │     DASHBOARD   │
+                    └────────┬────────┘
+                             │
+          ┌──────────────────┼──────────────────┐
+          ↓                  ↓                  ↓
+   Create Account     Search Account     Update Account
+          │                  │                  │
+          ↓                  ↓                  ↓
+ generateAccountNo()       Search           Update
+          │
+          ↓
+       accno
+          │
+          ↓
+       INSERT
+          │
+          └──────────────────┐
+                             ↓
+                       Deposit Account
+                             │
+                             ↓
+                       Withdraw Account
+                             │
+                             ↓
+                        Close Account
+                             │
+                             ↓
+                         Dashboard

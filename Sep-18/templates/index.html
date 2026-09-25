@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee CRUD</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+            background-color: #f4f6f8;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        a, button {
+            padding: 8px 15px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .add {
+            background-color: green;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #343a40;
+            color: white;
+        }
+
+        .edit {
+            background-color: orange;
+            color: black;
+        }
+
+        .delete {
+            background-color: red;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Employee Management System</h1>
+
+<a href="/add" class="add">Add Employee</a>
+
+<table>
+
+    <tr>
+        <th>Empno</th>
+        <th>Name</th>
+        <th>Gender</th>
+        <th>Department</th>
+        <th>Designation</th>
+        <th>Basic</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for emp in employees %}
+
+    <tr>
+        <td>{{ emp.Empno }}</td>
+        <td>{{ emp.Name }}</td>
+        <td>{{ emp.Gender }}</td>
+        <td>{{ emp.Dept }}</td>
+        <td>{{ emp.Desig }}</td>
+        <td>{{ emp.Basic }}</td>
+
+        <td>
+            <a href="/edit/{{ emp.Empno }}" class="edit">
+                Edit
+            </a>
+
+            <form action="/delete/{{ emp.Empno }}"
+                  method="POST"
+                  style="display:inline;"
+                  onsubmit="return confirm('Delete this employee?');">
+
+                <button type="submit" class="delete">
+                    Delete
+                </button>
+
+            </form>
+        </td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+</body>
+</html>

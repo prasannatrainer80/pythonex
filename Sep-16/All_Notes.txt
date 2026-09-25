@@ -1,0 +1,493 @@
+Here is a practical example of SQL for Data Analysis and Graphs using Python Matplotlib with your Employ table. We will connect MySQL to Python, retrieve employee data, perform SQL analysis, and create charts.
+
+1. Create the Employ table in MySQL
+
+Your table and data are suitable for practicing SQL data analysis.
+
+CREATE DATABASE CompanyDB;
+
+USE CompanyDB;
+
+CREATE TABLE Employ
+(
+    Empno INT PRIMARY KEY,
+    Name VARCHAR(30) NOT NULL,
+    Gender ENUM('MALE','FEMALE'),
+    Dept VARCHAR(30),
+    Desig VARCHAR(30),
+    Basic NUMERIC(9,2)
+);
+
+INSERT INTO Employ(Empno, Name, Gender, Dept, Desig, Basic)
+VALUES
+(1,'Sandhan','MALE','Java','Programmer',88223),
+(2,'Premjeet','MALE','Sql','Expert',98222),
+(3,'Nirmalya','MALE','Java','Developer',88224),
+(4,'Zainab','FEMALE','Sql','Expert',77224),
+(5,'Sourav','MALE','Dotnet','Manager',77722),
+(6,'Ananta','MALE','Sql','Expert',82555),
+(7,'Ishani','FEMALE','Dotnet','Expert',77223);
+2. SQL queries for data analysis
+Query 1: Display all employees
+SELECT * FROM Employ;
+Query 2: Find total number of employees
+SELECT COUNT(*) AS TotalEmployees
+FROM Employ;
+
+Output:
+
+TotalEmployees
+7
+Query 3: Find average salary
+SELECT AVG(Basic) AS AverageSalary
+FROM Employ;
+Query 4: Find department-wise employee count
+SELECT Dept, COUNT(*) AS EmployeeCount
+FROM Employ
+GROUP BY Dept;
+
+Output:
+
+Dept	EmployeeCount
+Java	2
+Sql	3
+Dotnet	2
+Query 5: Find department-wise average salary
+SELECT
+    Dept,
+    ROUND(AVG(Basic), 2) AS AverageSalary
+FROM Employ
+GROUP BY Dept
+ORDER BY AverageSalary DESC;
+Query 6: Find highest-paid employee
+SELECT Name, Dept, Basic
+FROM Employ
+WHERE Basic = (SELECT MAX(Basic) FROM Employ);
+Query 7: Find female and male employee counts
+SELECT Gender, COUNT(*) AS EmployeeCount
+FROM Employ
+GROUP BY Gender;
+Query 8: Find employees earning more than 80,000
+SELECT Name, Dept, Basic
+FROM Employ
+WHERE Basic > 80000
+ORDER BY Basic DESC;
+3. Install Python libraries
+
+Open PyCharm Terminal and run:
+
+pip install mysql-connector-python pandas matplotlib
+
+We will use:
+
+mysql.connector — Connect Python to MySQL.
+pandas — Store and analyze SQL query results.
+matplotlib — Create graphs.
+4. Connect MySQL with Python
+
+Create a Python file named employee_analysis.py.
+
+import mysql.connector
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Connect to MySQL
+conn = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="your_password",
+    database="CompanyDB"
+)
+
+print("MySQL Connected Successfully")
+
+# Read employee data
+query = "SELECT * FROM Employ"
+
+df = pd.read_sql(query, conn)
+
+print(df)
+
+conn.close()
+
+Important: Replace your_password with your MySQL password.
+
+Example output:
+
+MySQL Connected Successfully
+
+   Empno       Name  Gender    Dept       Desig    Basic
+0      1    Sandhan    MALE    Java  Programmer  88223.0
+1      2   Premjeet    MALE     Sql       Expert  98222.0
+2      3  Nirmalya    MALE    Java    Developer  88224.0
+3      4     Zainab  FEMALE     Sql       Expert  77224.0
+4      5     Sourav    MALE  Dotnet      Manager  77722.0
+5      6     Ananta    MALE     Sql       Expert  82555.0
+6      7     Ishani  FEMALE  Dotnet       Expert  77223.0
+5. SQL analysis with Pandas
+
+We can execute SQL queries directly from Python.
+
+Department-wise employee count
+query = """
+SELECT Dept, COUNT(*) AS EmployeeCount
+FROM Employ
+GROUP BY Dept
+"""
+
+df_dept = pd.read_sql(query, conn)
+
+print(df_dept)
+Department-wise average salary
+query = """
+SELECT Dept, ROUND(AVG(Basic), 2) AS AverageSalary
+FROM Employ
+GROUP BY Dept
+ORDER BY AverageSalary DESC
+"""
+
+df_salary = pd.read_sql(query, conn)
+
+print(df_salary)
+
+Example result:
+
+Dept	AverageSalary
+Java	88223.50
+Sql	86667.00
+Dotnet	77472.50
+6. Create graphs using Matplotlib
+Graph 1: Department-wise employee count
+
+This is a bar chart showing how many employees belong to each department.
+
+import mysql.connector
+import pandas as pd
+import matplotlib.pyplot as plt
+
+conn = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="your_password",
+    database="CompanyDB"
+)
+
+query = """
+SELECT Dept, COUNT(*) AS EmployeeCount
+FROM Employ
+GROUP BY Dept
+"""
+
+df = pd.read_sql(query, conn)
+
+plt.figure(figsize=(8, 5))
+
+plt.bar(df["Dept"], df["EmployeeCount"])
+
+plt.title("Department-wise Employee Count")
+plt.xlabel("Department")
+plt.ylabel("Number of Employees")
+
+plt.show()
+
+conn.close()
+
+The graph will contain three bars:
+
+Java — 2 employees
+Sql — 3 employees
+Dotnet — 2 employees
+Graph 2: Department-wise average salary
+
+This chart shows the average basic salary for each department.
+
+import mysql.connector
+import pandas as pd
+import matplotlib.pyplot as plt
+
+conn = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="your_password",
+    database="CompanyDB"
+)
+
+query = """
+SELECT Dept, AVG(Basic) AS AverageSalary
+FROM Employ
+GROUP BY Dept
+"""
+
+df = pd.read_sql(query, conn)
+
+plt.figure(figsize=(8, 5))
+
+plt.bar(df["Dept"], df["AverageSalary"])
+
+plt.title("Department-wise Average Salary")
+plt.xlabel("Department")
+plt.ylabel("Average Basic Salary")
+
+plt.show()
+
+conn.close()
+Graph 3: Employee salary comparison
+
+A bar chart can compare the salary of each employee.
+
+import mysql.connector
+import pandas as pd
+import matplotlib.pyplot as plt
+
+conn = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="your_password",
+    database="CompanyDB"
+)
+
+query = """
+SELECT Name, Basic
+FROM Employ
+ORDER BY Basic DESC
+"""
+
+df = pd.read_sql(query, conn)
+
+plt.figure(figsize=(10, 5))
+
+plt.bar(df["Name"], df["Basic"])
+
+plt.title("Employee Salary Comparison")
+plt.xlabel("Employee Name")
+plt.ylabel("Basic Salary")
+
+plt.xticks(rotation=45)
+
+plt.show()
+
+conn.close()
+Graph 4: Gender-wise employee count — Pie chart
+import mysql.connector
+import pandas as pd
+import matplotlib.pyplot as plt
+
+conn = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="your_password",
+    database="CompanyDB"
+)
+
+query = """
+SELECT Gender, COUNT(*) AS EmployeeCount
+FROM Employ
+GROUP BY Gender
+"""
+
+df = pd.read_sql(query, conn)
+
+plt.figure(figsize=(6, 6))
+
+plt.pie(
+    df["EmployeeCount"],
+    labels=df["Gender"],
+    autopct="%1.1f%%"
+)
+
+plt.title("Gender-wise Employee Distribution")
+
+plt.show()
+
+conn.close()
+7. Complete Python program — SQL + Matplotlib
+
+This single program executes four SQL queries and displays four graphs.
+
+import mysql.connector
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# --------------------------------
+# 1. MySQL Connection
+# --------------------------------
+
+conn = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="your_password",
+    database="CompanyDB"
+)
+
+print("Connected to MySQL")
+
+# --------------------------------
+# 2. Department-wise Employee Count
+# --------------------------------
+
+query1 = """
+SELECT Dept, COUNT(*) AS EmployeeCount
+FROM Employ
+GROUP BY Dept
+"""
+
+df_dept = pd.read_sql(query1, conn)
+
+# --------------------------------
+# 3. Department-wise Average Salary
+# --------------------------------
+
+query2 = """
+SELECT Dept, AVG(Basic) AS AverageSalary
+FROM Employ
+GROUP BY Dept
+"""
+
+df_salary = pd.read_sql(query2, conn)
+
+# --------------------------------
+# 4. Employee Salary Comparison
+# --------------------------------
+
+query3 = """
+SELECT Name, Basic
+FROM Employ
+ORDER BY Basic DESC
+"""
+
+df_employee = pd.read_sql(query3, conn)
+
+# --------------------------------
+# 5. Gender-wise Employee Count
+# --------------------------------
+
+query4 = """
+SELECT Gender, COUNT(*) AS EmployeeCount
+FROM Employ
+GROUP BY Gender
+"""
+
+df_gender = pd.read_sql(query4, conn)
+
+# --------------------------------
+# 6. Display Data
+# --------------------------------
+
+print("\nDepartment-wise Employee Count")
+print(df_dept)
+
+print("\nDepartment-wise Average Salary")
+print(df_salary)
+
+print("\nEmployee Salary Comparison")
+print(df_employee)
+
+print("\nGender-wise Employee Count")
+print(df_gender)
+
+# --------------------------------
+# 7. Graph 1: Department Count
+# --------------------------------
+
+plt.figure(figsize=(8, 5))
+
+plt.bar(df_dept["Dept"], df_dept["EmployeeCount"])
+
+plt.title("Department-wise Employee Count")
+plt.xlabel("Department")
+plt.ylabel("Employee Count")
+
+plt.show()
+
+# --------------------------------
+# 8. Graph 2: Average Salary
+# --------------------------------
+
+plt.figure(figsize=(8, 5))
+
+plt.bar(df_salary["Dept"], df_salary["AverageSalary"])
+
+plt.title("Department-wise Average Salary")
+plt.xlabel("Department")
+plt.ylabel("Average Salary")
+
+plt.show()
+
+# --------------------------------
+# 9. Graph 3: Employee Salary
+# --------------------------------
+
+plt.figure(figsize=(10, 5))
+
+plt.bar(df_employee["Name"], df_employee["Basic"])
+
+plt.title("Employee Salary Comparison")
+plt.xlabel("Employee Name")
+plt.ylabel("Basic Salary")
+
+plt.xticks(rotation=45)
+
+plt.show()
+
+# --------------------------------
+# 10. Graph 4: Gender Distribution
+# --------------------------------
+
+plt.figure(figsize=(6, 6))
+
+plt.pie(
+    df_gender["EmployeeCount"],
+    labels=df_gender["Gender"],
+    autopct="%1.1f%%"
+)
+
+plt.title("Gender-wise Employee Distribution")
+
+plt.show()
+
+# --------------------------------
+# 11. Close Connection
+# --------------------------------
+
+conn.close()
+
+print("\nMySQL Connection Closed")
+8. Additional SQL analysis exercises
+
+Try these queries yourself:
+
+Exercise 1: Find the total salary paid by each department.
+
+SELECT Dept, SUM(Basic) AS TotalSalary
+FROM Employ
+GROUP BY Dept;
+
+Exercise 2: Find the number of employees in each designation.
+
+SELECT Desig, COUNT(*) AS EmployeeCount
+FROM Employ
+GROUP BY Desig;
+
+Exercise 3: Find employees whose salary is greater than the average salary.
+
+SELECT Name, Basic
+FROM Employ
+WHERE Basic > (SELECT AVG(Basic) FROM Employ);
+
+Exercise 4: Find the department with the highest average salary.
+
+SELECT Dept, AVG(Basic) AS AverageSalary
+FROM Employ
+GROUP BY Dept
+ORDER BY AverageSalary DESC
+LIMIT 1;
+
+Exercise 5: Create a salary distribution histogram.
+
+plt.hist(df_employee["Basic"], bins=5)
+
+plt.title("Salary Distribution")
+plt.xlabel("Basic Salary")
+plt.ylabel("Number of Employees")
+
+plt.show()'

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>Update Account</title>
+
+</head>
+
+<body>
+
+<center>
+
+<h2>Update Account</h2>
+
+<form method="POST">
+
+<table>
+
+<tr>
+
+<td>Account No</td>
+
+<td>
+<input type="text"
+       name="account_no">
+</td>
+
+</tr>
+
+<tr>
+
+<td>Account Holder Name</td>
+
+<td>
+<input type="text"
+       name="name">
+</td>
+
+</tr>
+
+<tr>
+
+<td>Username</td>
+
+<td>
+<input type="text"
+       name="username">
+</td>
+
+</tr>
+
+<tr>
+
+<td>Passcode</td>
+
+<td>
+<input type="password"
+       name="passcode">
+</td>
+
+</tr>
+
+<tr>
+
+<td>Email</td>
+
+<td>
+<input type="text"
+       name="email">
+</td>
+
+</tr>
+
+<tr>
+
+<td>Mobile No</td>
+
+<td>
+<input type="text"
+       name="mobile">
+</td>
+
+</tr>
+
+<tr>
+
+<td colspan="2"
+    align="center">
+
+<input type="submit"
+       value="Update Account">
+
+</td>
+
+</tr>
+
+</table>
+
+</form>
+
+<br>
+
+<a href="{{ url_for('index') }}">
+    Back to Dashboard
+</a>
+
+</center>
+
+</body>
+
+</html>

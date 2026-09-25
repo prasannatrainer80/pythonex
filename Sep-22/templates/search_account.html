@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>Search Account</title>
+
+</head>
+
+<body>
+
+<center>
+
+<h2>Search Account</h2>
+
+<form method="POST">
+
+    Account No:
+
+    <input type="text"
+           name="account_no">
+
+    <input type="submit"
+           value="Search">
+
+</form>
+
+
+{% if account %}
+
+<hr>
+
+<h3>Account Details</h3>
+
+<table border="1"
+       cellpadding="10">
+
+    <tr>
+        <th>Account No</th>
+        <td>{{ account.AccountNo }}</td>
+    </tr>
+
+    <tr>
+        <th>Account Holder</th>
+        <td>{{ account.AccHolderName }}</td>
+    </tr>
+
+    <tr>
+        <th>Username</th>
+        <td>{{ account.UserName }}</td>
+    </tr>
+
+    <tr>
+        <th>Passcode</th>
+        <td>{{ account.Passcode }}</td>
+    </tr>
+
+    <tr>
+        <th>Email</th>
+        <td>{{ account.Email }}</td>
+    </tr>
+
+    <tr>
+        <th>Mobile No</th>
+        <td>{{ account.MobileNo }}</td>
+    </tr>
+
+    <tr>
+        <th>Amount</th>
+        <td>{{ account.Amount }}</td>
+    </tr>
+
+</table>
+
+{% else %}
+
+    {% if request.method == "POST" %}
+
+        <h3>Account Not Found</h3>
+
+    {% endif %}
+
+{% endif %}
+
+<br>
+
+<a href="{{ url_for('index') }}">
+    Back to Dashboard
+</a>
+
+</center>
+
+</body>
+
+</html>
