@@ -1,0 +1,489 @@
+Absolutely. Here is a Python Machine Learning Tutorial with hands-on ML Lab exercises, suitable from beginner to intermediate level.
+
+🐍 Python Machine Learning Tutorial + ML Lab
+1. What is Machine Learning?
+
+Machine Learning (ML) is a technique where computers learn patterns from data and use those patterns to make predictions or decisions.
+
+Example
+
+Suppose we have student data:
+
+Study Hours	Attendance	Marks
+2	60	45
+4	70	55
+6	80	68
+8	90	82
+10	95	92
+
+We can train a machine-learning model to predict marks based on study hours and attendance.
+
+2. Types of Machine Learning
+1. Supervised Learning
+
+Training data contains input and known output.
+
+Examples:
+
+Predict student marks
+Predict house price
+Predict whether an email is spam
+Predict whether a customer will leave
+
+Common algorithms:
+
+Linear Regression
+Logistic Regression
+Decision Tree
+Random Forest
+K-Nearest Neighbors
+Support Vector Machine
+2. Unsupervised Learning
+
+There is no target/output column.
+
+Examples:
+
+Customer segmentation
+Grouping similar students
+Finding patterns in sales data
+
+Common algorithms:
+
+K-Means Clustering
+Hierarchical Clustering
+PCA
+3. Reinforcement Learning
+
+An agent learns through rewards and penalties.
+
+Examples:
+
+Game playing
+Robotics
+Autonomous systems
+3. ML Environment Setup
+
+Install Python packages:
+
+pip install numpy pandas matplotlib seaborn scikit-learn jupyter
+
+Or using Anaconda:
+
+conda install numpy pandas matplotlib seaborn scikit-learn jupyter
+
+Start Jupyter:
+
+jupyter notebook
+4. Important Python ML Libraries
+Library	Purpose
+NumPy	Numerical calculations
+Pandas	Data manipulation
+Matplotlib	Visualization
+Seaborn	Statistical visualization
+Scikit-learn	Machine Learning
+Jupyter	Interactive ML development
+🧪 ML LAB 1 — Working with a Dataset
+import pandas as pd
+
+data = {
+    "StudyHours": [2, 4, 6, 8, 10],
+    "Attendance": [60, 70, 80, 90, 95],
+    "Marks": [45, 55, 68, 82, 92]
+}
+
+df = pd.DataFrame(data)
+
+print(df)
+Output
+   StudyHours  Attendance  Marks
+0           2          60     45
+1           4          70     55
+2           6          80     68
+3           8          90     82
+4          10          95     92
+🧪 ML LAB 2 — Data Analysis
+print(df.head())
+
+print(df.info())
+
+print(df.describe())
+
+Find missing values:
+
+print(df.isnull().sum())
+
+Find correlation:
+
+print(df.corr())
+🧪 ML LAB 3 — Data Visualization
+import matplotlib.pyplot as plt
+
+plt.scatter(df["StudyHours"], df["Marks"])
+
+plt.xlabel("Study Hours")
+plt.ylabel("Marks")
+plt.title("Study Hours vs Marks")
+
+plt.show()
+
+This helps us visually understand whether study hours and marks have a relationship.
+
+5. Machine Learning Workflow
+
+A typical ML project follows this process:
+
+Collect Data
+     ↓
+Understand Data
+     ↓
+Clean Data
+     ↓
+Visualize Data
+     ↓
+Select Features
+     ↓
+Split Dataset
+     ↓
+Train Model
+     ↓
+Test Model
+     ↓
+Evaluate Model
+     ↓
+Make Predictions
+🧪 ML LAB 4 — Linear Regression
+
+Linear Regression is used when the target value is continuous.
+
+Example:
+
+Predict marks based on study hours.
+
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+data = {
+    "StudyHours": [2, 4, 6, 8, 10],
+    "Marks": [45, 55, 68, 82, 92]
+}
+
+df = pd.DataFrame(data)
+
+X = df[["StudyHours"]]
+y = df["Marks"]
+
+model = LinearRegression()
+
+model.fit(X, y)
+
+prediction = model.predict([[7]])
+
+print("Predicted Marks:", prediction[0])
+
+The model learns a relationship approximately like:
+
+Marks = m × StudyHours + c
+🧪 ML LAB 5 — Train/Test Split
+
+In real ML projects, we shouldn't train and test using exactly the same data.
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+print("Training Data:")
+print(X_train)
+
+print("Testing Data:")
+print(X_test)
+
+Usually:
+
+Training Data → 80%
+Testing Data  → 20%
+🧪 ML LAB 6 — Linear Regression with Evaluation
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+data = {
+    "StudyHours": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "Marks": [35, 42, 48, 55, 60, 68, 72, 80, 87, 93]
+}
+
+df = pd.DataFrame(data)
+
+X = df[["StudyHours"]]
+y = df["Marks"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+model = LinearRegression()
+
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("Actual:", list(y_test))
+print("Predicted:", list(y_pred))
+
+print("MAE:", mean_absolute_error(y_test, y_pred))
+print("MSE:", mean_squared_error(y_test, y_pred))
+print("R2 Score:", r2_score(y_test, y_pred))
+6. Classification
+
+Classification predicts a category/class.
+
+For example:
+
+Study Hours
+     ↓
+Machine Learning
+     ↓
+Pass / Fail
+
+Example dataset:
+
+Study Hours	Attendance	Result
+2	60	Fail
+3	65	Fail
+5	75	Pass
+7	85	Pass
+9	90	Pass
+🧪 ML LAB 7 — Logistic Regression
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+data = {
+    "StudyHours": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "Result": [0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+}
+
+df = pd.DataFrame(data)
+
+X = df[["StudyHours"]]
+y = df["Result"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+model = LogisticRegression()
+
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+
+result = model.predict([[6]])
+
+if result[0] == 1:
+    print("Pass")
+else:
+    print("Fail")
+🧪 ML LAB 8 — Decision Tree
+
+Decision Trees are easy to understand because they make decisions using conditions.
+
+from sklearn.tree import DecisionTreeClassifier
+
+model = DecisionTreeClassifier(
+    random_state=42
+)
+
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("Predictions:", y_pred)
+🧪 ML LAB 9 — Random Forest
+
+Random Forest combines multiple decision trees.
+
+from sklearn.ensemble import RandomForestClassifier
+
+model = RandomForestClassifier(
+    n_estimators=100,
+    random_state=42
+)
+
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+🧪 ML LAB 10 — KNN
+
+K-Nearest Neighbors predicts based on nearby data points.
+
+from sklearn.neighbors import KNeighborsClassifier
+
+model = KNeighborsClassifier(n_neighbors=3)
+
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+🧪 ML LAB 11 — K-Means Clustering
+
+K-Means is an unsupervised learning algorithm.
+
+Example: divide customers into groups.
+
+import pandas as pd
+
+from sklearn.cluster import KMeans
+
+data = {
+    "Age": [20, 22, 25, 45, 48, 50, 60, 62],
+    "Income": [20000, 22000, 25000, 60000, 65000, 70000, 30000, 32000]
+}
+
+df = pd.DataFrame(data)
+
+model = KMeans(
+    n_clusters=3,
+    random_state=42,
+    n_init=10
+)
+
+df["Cluster"] = model.fit_predict(
+    df[["Age", "Income"]]
+)
+
+print(df)
+7. Feature Scaling
+
+Some algorithms work better when features have comparable scales.
+
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+
+X_scaled = scaler.fit_transform(X)
+
+print(X_scaled)
+
+Common scaling techniques:
+
+StandardScaler
+MinMaxScaler
+RobustScaler
+8. Model Evaluation
+Regression
+
+Common metrics:
+
+MAE
+MSE
+RMSE
+R²
+Classification
+
+Common metrics:
+
+Accuracy
+Precision
+Recall
+F1 Score
+Confusion Matrix
+
+Example:
+
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix
+)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Precision:", precision_score(y_test, y_pred))
+print("Recall:", recall_score(y_test, y_pred))
+print("F1:", f1_score(y_test, y_pred))
+
+print(confusion_matrix(y_test, y_pred))
+🧪 ML LAB 12 — Complete Student Prediction Project
+Objective
+
+Build an ML model that predicts whether a student will pass.
+
+Input
+Study Hours
+Attendance
+Previous Marks
+Output
+Pass / Fail
+
+Dataset:
+
+import pandas as pd
+
+data = {
+    "StudyHours": [1,2,3,4,5,6,7,8,9,10],
+    "Attendance": [50,55,60,65,70,75,80,85,90,95],
+    "PreviousMarks": [30,35,40,45,50,60,65,70,80,85],
+    "Result": [0,0,0,0,1,1,1,1,1,1]
+}
+
+df = pd.DataFrame(data)
+
+print(df)
+Train model
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+
+X = df[
+    [
+        "StudyHours",
+        "Attendance",
+        "PreviousMarks"
+    ]
+]
+
+y = df["Result"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+model = RandomForestClassifier(
+    n_estimators=100,
+    random_state=42
+)
+
+model.fit(X_train, y_train)
+Make prediction
+new_student = [[6, 75, 60]]
+
+prediction = model.predict(new_student)
+
+if prediction[0] == 1:
+    print("Student is predicted to PASS")
+else:
+    print("Student is predicted to FAIL")
