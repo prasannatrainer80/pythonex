@@ -1,0 +1,192 @@
+Absolutely. Here are Python Machine Learning examples, arranged from beginner to advanced.
+
+1. Linear Regression — House Price Prediction
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+# Training data
+X = np.array([[1000], [1500], [2000], [2500], [3000]])
+y = np.array([200000, 300000, 400000, 500000, 600000])
+
+# Create model
+model = LinearRegression()
+
+# Train model
+model.fit(X, y)
+
+# Predict price for 2200 sq.ft
+prediction = model.predict([[2200]])
+
+print("Predicted Price:", prediction[0])
+
+Concepts: Regression, training, prediction.
+
+2. Multiple Linear Regression — Student Marks
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+data = {
+    "hours": [1, 2, 3, 4, 5, 6, 7, 8],
+    "attendance": [60, 65, 70, 75, 80, 85, 90, 95],
+    "marks": [35, 40, 50, 55, 65, 70, 80, 90]
+}
+
+df = pd.DataFrame(data)
+
+X = df[["hours", "attendance"]]
+y = df["marks"]
+
+model = LinearRegression()
+model.fit(X, y)
+
+marks = model.predict([[6, 88]])
+
+print("Predicted Marks:", marks[0])
+3. Classification — Pass or Fail
+from sklearn.tree import DecisionTreeClassifier
+
+X = [
+    [2, 50],
+    [3, 60],
+    [4, 65],
+    [5, 75],
+    [6, 80],
+    [7, 90]
+]
+
+# 0 = Fail, 1 = Pass
+y = [0, 0, 0, 1, 1, 1]
+
+model = DecisionTreeClassifier()
+
+model.fit(X, y)
+
+result = model.predict([[5, 70]])
+
+if result[0] == 1:
+    print("Pass")
+else:
+    print("Fail")
+4. Logistic Regression — Customer Churn
+from sklearn.linear_model import LogisticRegression
+
+X = [
+    [1, 20],
+    [2, 25],
+    [3, 30],
+    [4, 35],
+    [5, 40],
+    [6, 45]
+]
+
+# 0 = Stay, 1 = Churn
+y = [0, 0, 0, 1, 1, 1]
+
+model = LogisticRegression()
+
+model.fit(X, y)
+
+prediction = model.predict([[4, 32]])
+
+print("Churn:", prediction[0])
+5. K-Means Clustering — Customer Segmentation
+import numpy as np
+from sklearn.cluster import KMeans
+
+customers = np.array([
+    [20, 20000],
+    [22, 22000],
+    [25, 25000],
+    [40, 60000],
+    [42, 65000],
+    [45, 70000],
+    [60, 100000],
+    [65, 110000]
+])
+
+model = KMeans(n_clusters=3, random_state=42, n_init=10)
+
+model.fit(customers)
+
+print("Cluster Labels:")
+print(model.labels_)
+
+print("Cluster Centers:")
+print(model.cluster_centers_)
+
+Concept: Unsupervised learning.
+
+6. Train/Test Split and Accuracy
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+X = [
+    [1, 50],
+    [2, 55],
+    [3, 60],
+    [4, 65],
+    [5, 70],
+    [6, 80],
+    [7, 85],
+    [8, 90]
+]
+
+y = [0, 0, 0, 1, 1, 1, 1, 1]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.25,
+    random_state=42
+)
+
+model = DecisionTreeClassifier()
+
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+accuracy = accuracy_score(y_test, y_pred)
+
+print("Accuracy:", accuracy)
+7. Complete ML Example — Iris Flower Classification
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+# Load dataset
+iris = load_iris()
+
+X = iris.data
+y = iris.target
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+# Create model
+model = DecisionTreeClassifier()
+
+# Train
+model.fit(X_train, y_train)
+
+# Test
+y_pred = model.predict(X_test)
+
+# Accuracy
+accuracy = accuracy_score(y_test, y_pred)
+
+print("Accuracy:", accuracy)
+
+# New flower prediction
+flower = [[5.1, 3.5, 1.4, 0.2]]
+
+prediction = model.predict(flower)
+
+print("Predicted Flower:", iris.target_names[prediction[0]])
