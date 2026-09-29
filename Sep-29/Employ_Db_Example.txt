@@ -1,0 +1,548 @@
+Yes. We can use your Employ table with the same coding-standard architecture:
+
+Controller → Service → Model → MySQL
+1. Project structure
+employee_api/
+│
+├── app.py
+├── config.py
+├── database.py
+│
+├── model/
+│   ├── __init__.py
+│   └── employee.py
+│
+├── service/
+│   ├── __init__.py
+│   └── employee_service.py
+│
+└── controller/
+    ├── __init__.py
+    └── employee_controller.py
+2. MySQL table
+CREATE DATABASE companydb;
+
+USE companydb;
+
+CREATE TABLE Employ
+(
+    Empno INT PRIMARY KEY,
+    Name VARCHAR(30) NOT NULL,
+    Gender ENUM('MALE','FEMALE'),
+    Dept VARCHAR(30),
+    Desig VARCHAR(30),
+    Basic NUMERIC(9,2)
+);
+
+INSERT INTO Employ
+(Empno, Name, Gender, Dept, Desig, Basic)
+VALUES
+(1, 'Sandhan', 'MALE', 'Java', 'Programmer', 88223),
+(2, 'Premjeet', 'MALE', 'Sql', 'Expert', 98222),
+(3, 'Nirmalya', 'MALE', 'Java', 'Developer', 88224),
+(4, 'Zainab', 'FEMALE', 'Sql', 'Expert', 77224),
+(5, 'Sourav', 'MALE', 'Dotnet', 'Manager', 77722),
+(6, 'Ananta', 'MALE', 'Sql', 'Expert', 82555),
+(7, 'Ishani', 'FEMALE', 'Dotnet', 'Expert', 77223);
+3. Install packages
+pip install flask flask-sqlalchemy pymysql
+4. database.py
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+5. config.py
+
+MySQL is running on port 3306.
+
+class Config:
+
+    SQLALCHEMY_DATABASE_URI = (
+        "mysql+pymysql://root:root@localhost:3306/companydb"
+    )
+
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+Change root:root according to your MySQL username and password.
+
+6. Model
+model/__init__.py
+# Model package
+model/employee.py
+
+This class maps the Python object to the Employ table.
+
+from database import db
+
+
+class Employee(db.Model):
+
+    __tablename__ = "Employ"
+
+    empno = db.Column(
+        "Empno",
+        db.Integer,
+        primary_key=True
+    )
+
+    name = db.Column(
+        "Name",
+        db.String(30),
+        nullable=False
+    )
+
+    gender = db.Column(
+        "Gender",
+        db.Enum("MALE", "FEMALE")
+    )
+
+    dept = db.Column(
+        "Dept",
+        db.String(30)
+    )
+
+    desig = db.Column(
+        "Desig",
+        db.String(30)
+    )
+
+    basic = db.Column(
+        "Basic",
+        db.Numeric(9, 2)
+    )
+
+    def to_dict(self):
+
+        return {
+            "empno": self.empno,
+            "name": self.name,
+            "gender": self.gender,
+            "dept": self.dept,
+            "desig": self.desig,
+            "basic": float(self.basic)
+            if self.basic is not None else None
+        }
+Important
+
+Your MySQL column is:
+
+Empno
+Name
+Gender
+Dept
+Desig
+Basic
+
+The Python attributes are:
+
+empno
+name
+gender
+dept
+desig
+basic
+
+For example:
+
+empno = db.Column("Empno", ...)
+
+The first value is the actual database column name.
+
+7. Service
+service/__init__.py
+# Service package
+service/employee_service.py
+
+The service contains the CRUD/business logic.
+
+from database import db
+from model.employee import Employee
+
+
+class EmployeeService:
+
+    # --------------------------------
+    # CREATE
+    # --------------------------------
+    @staticmethod
+    def create_employee(data):
+
+        employee = Employee(
+            empno=data["empno"],
+            name=data["name"],
+            gender=data.get("gender"),
+            dept=data.get("dept"),
+            desig=data.get("desig"),
+            basic=data.get("basic")
+        )
+
+        db.session.add(employee)
+        db.session.commit()
+
+        return employee
+
+    # --------------------------------
+    # GET ALL
+    # --------------------------------
+    @staticmethod
+    def get_all_employees():
+
+        return Employee.query.all()
+
+    # --------------------------------
+    # GET BY ID
+    # --------------------------------
+    @staticmethod
+    def get_employee_by_id(empno):
+
+        return db.session.get(Employee, empno)
+
+    # --------------------------------
+    # UPDATE
+    # --------------------------------
+    @staticmethod
+    def update_employee(empno, data):
+
+        employee = db.session.get(
+            Employee,
+            empno
+        )
+
+        if employee is None:
+            return None
+
+        employee.name = data["name"]
+        employee.gender = data.get("gender")
+        employee.dept = data.get("dept")
+        employee.desig = data.get("desig")
+        employee.basic = data.get("basic")
+
+        db.session.commit()
+
+        return employee
+
+    # --------------------------------
+    # DELETE
+    # --------------------------------
+    @staticmethod
+    def delete_employee(empno):
+
+        employee = db.session.get(
+            Employee,
+            empno
+        )
+
+        if employee is None:
+            return False
+
+        db.session.delete(employee)
+        db.session.commit()
+
+        return True
+8. Controller
+controller/__init__.py
+# Controller package
+controller/employee_controller.py
+from flask import Blueprint, request, jsonify
+
+from service.employee_service import EmployeeService
+
+
+employee_controller = Blueprint(
+    "employee_controller",
+    __name__
+)
+
+
+# ==========================================
+# CREATE EMPLOYEE
+# POST /api/employees
+# ==========================================
+
+@employee_controller.route(
+    "/api/employees",
+    methods=["POST"]
+)
+def create_employee():
+
+    data = request.get_json()
+
+    if not data:
+
+        return jsonify({
+            "message": "Request body is required"
+        }), 400
+
+    required_fields = [
+        "empno",
+        "name"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+
+            return jsonify({
+                "message": f"{field} is required"
+            }), 400
+
+    employee = EmployeeService.create_employee(
+        data
+    )
+
+    return jsonify({
+        "message": "Employee created successfully",
+        "employee": employee.to_dict()
+    }), 201
+
+
+# ==========================================
+# GET ALL EMPLOYEES
+# GET /api/employees
+# ==========================================
+
+@employee_controller.route(
+    "/api/employees",
+    methods=["GET"]
+)
+def get_all_employees():
+
+    employees = (
+        EmployeeService.get_all_employees()
+    )
+
+    result = [
+        employee.to_dict()
+        for employee in employees
+    ]
+
+    return jsonify(result), 200
+
+
+# ==========================================
+# GET EMPLOYEE BY ID
+# GET /api/employees/<empno>
+# ==========================================
+
+@employee_controller.route(
+    "/api/employees/<int:empno>",
+    methods=["GET"]
+)
+def get_employee(empno):
+
+    employee = (
+        EmployeeService.get_employee_by_id(
+            empno
+        )
+    )
+
+    if employee is None:
+
+        return jsonify({
+            "message": "Employee not found"
+        }), 404
+
+    return jsonify(
+        employee.to_dict()
+    ), 200
+
+
+# ==========================================
+# UPDATE EMPLOYEE
+# PUT /api/employees/<empno>
+# ==========================================
+
+@employee_controller.route(
+    "/api/employees/<int:empno>",
+    methods=["PUT"]
+)
+def update_employee(empno):
+
+    data = request.get_json()
+
+    if not data:
+
+        return jsonify({
+            "message": "Request body is required"
+        }), 400
+
+    employee = EmployeeService.update_employee(
+        empno,
+        data
+    )
+
+    if employee is None:
+
+        return jsonify({
+            "message": "Employee not found"
+        }), 404
+
+    return jsonify({
+        "message": "Employee updated successfully",
+        "employee": employee.to_dict()
+    }), 200
+
+
+# ==========================================
+# DELETE EMPLOYEE
+# DELETE /api/employees/<empno>
+# ==========================================
+
+@employee_controller.route(
+    "/api/employees/<int:empno>",
+    methods=["DELETE"]
+)
+def delete_employee(empno):
+
+    result = EmployeeService.delete_employee(
+        empno
+    )
+
+    if not result:
+
+        return jsonify({
+            "message": "Employee not found"
+        }), 404
+
+    return jsonify({
+        "message": "Employee deleted successfully"
+    }), 200
+9. app.py
+from flask import Flask
+
+from config import Config
+from database import db
+from controller.employee_controller import (
+    employee_controller
+)
+
+
+def create_app():
+
+    app = Flask(__name__)
+
+    # Load configuration
+    app.config.from_object(Config)
+
+    # Initialize SQLAlchemy
+    db.init_app(app)
+
+    # Register controller
+    app.register_blueprint(
+        employee_controller
+    )
+
+    return app
+
+
+if __name__ == "__main__":
+
+    app = create_app()
+
+    app.run(
+        host="localhost",
+        port=5000,
+        debug=True
+    )
+
+Because the table already exists, we don't need:
+
+db.create_all()
+10. Run
+python app.py
+
+API will be available at:
+
+http://localhost:5000
+11. REST API CRUD
+Get all employees
+GET http://localhost:5000/api/employees
+
+Response:
+
+[
+    {
+        "empno": 1,
+        "name": "Sandhan",
+        "gender": "MALE",
+        "dept": "Java",
+        "desig": "Programmer",
+        "basic": 88223.0
+    },
+    {
+        "empno": 2,
+        "name": "Premjeet",
+        "gender": "MALE",
+        "dept": "Sql",
+        "desig": "Expert",
+        "basic": 98222.0
+    }
+]
+Get employee
+GET http://localhost:5000/api/employees/1
+Create employee
+POST http://localhost:5000/api/employees
+
+JSON:
+
+{
+    "empno": 8,
+    "name": "Rajesh",
+    "gender": "MALE",
+    "dept": "Python",
+    "desig": "Developer",
+    "basic": 85000
+}
+Update employee
+PUT http://localhost:5000/api/employees/1
+
+JSON:
+
+{
+    "name": "Sandhan Kumar",
+    "gender": "MALE",
+    "dept": "Python",
+    "desig": "Senior Developer",
+    "basic": 95000
+}
+
+Notice that empno is not updated, because it is the primary key.
+
+Delete employee
+DELETE http://localhost:5000/api/employees/1
+
+Response:
+
+{
+    "message": "Employee deleted successfully"
+}
+Overall architecture
+                  HTTP / JSON
+                       │
+                       ▼
+             ┌──────────────────┐
+             │    Controller    │
+             │ employee_       │
+             │ controller.py   │
+             └────────┬─────────┘
+                      │
+                      ▼
+             ┌──────────────────┐
+             │     Service      │
+             │ employee_       │
+             │ service.py      │
+             └────────┬─────────┘
+                      │
+                      ▼
+             ┌──────────────────┐
+             │      Model       │
+             │    Employee      │
+             │ SQLAlchemy ORM   │
+             └────────┬─────────┘
+                      │
+                      ▼
+             ┌──────────────────┐
+             │ MySQL :3306      │
+             │    Employ        │
+             └──────────────────┘
+
+This gives you a clean 3-layer REST API architecture where the Controller handles HTTP, Service handles business logic, and Model handles ORM/database mapping.

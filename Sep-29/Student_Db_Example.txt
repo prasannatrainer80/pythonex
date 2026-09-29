@@ -1,0 +1,414 @@
+CREATE DATABASE studentdb;
+
+USE studentdb;
+
+CREATE TABLE students (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100),
+    course VARCHAR(100)
+);
+
+USE studentdb;
+
+INSERT INTO students (name, email, course)
+VALUES
+('Ravi Kumar', 'ravi@gmail.com', 'Python'),
+('Sita Sharma', 'sita@gmail.com', 'Java'),
+('Arjun Reddy', 'arjun@gmail.com', 'C#'),
+('Priya Singh', 'priya@gmail.com', 'Python'),
+('Kiran Rao', 'kiran@gmail.com', 'JavaScript'),
+('Anil Kumar', 'anil@gmail.com', 'SQL'),
+('Sneha Reddy', 'sneha@gmail.com', 'Python'),
+('Rahul Verma', 'rahul@gmail.com', 'C++'),
+('Divya Sharma', 'divya@gmail.com', 'Java'),
+('Vikram Rao', 'vikram@gmail.com', 'SQL');
+
+Absolutely. For a more professional Flask REST API + SQLAlchemy ORM + MySQL project, you can separate the application into Model, Service, and Controller layers.
+
+Recommended project structure
+student_api/
+│
+├── app.py
+├── config.py
+│
+├── model/
+│   ├── __init__.py
+│   └── student.py
+│
+├── service/
+│   ├── __init__.py
+│   └── student_service.py
+│
+└── controller/
+    ├── __init__.py
+    └── student_controller.py
+
+The flow will be:
+
+Client
+   ↓
+Controller
+   ↓
+Service
+   ↓
+Model / SQLAlchemy ORM
+   ↓
+MySQL :3306
+1. config.py
+class Config:
+
+    SQLALCHEMY_DATABASE_URI = (
+        "mysql+pymysql://root:root@localhost:3306/studentdb"
+    )
+
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+Change root:root if your MySQL username/password is different.
+
+2. Model folder
+model/__init__.py
+# Model package
+model/student.py
+
+This contains the Student ORM model class.
+
+from database import db
+
+
+class Student(db.Model):
+
+    __tablename__ = "students"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    name = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    email = db.Column(
+        db.String(100),
+        nullable=False,
+        unique=True
+    )
+
+    course = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "course": self.course
+        }
+
+We also need database.py:
+
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+3. Service folder
+
+The service layer contains the business logic.
+
+service/__init__.py
+# Service package
+service/student_service.py
+from database import db
+from model.student import Student
+
+
+class StudentService:
+
+    @staticmethod
+    def create_student(data):
+
+        student = Student(
+            name=data["name"],
+            email=data["email"],
+            course=data["course"]
+        )
+
+        db.session.add(student)
+        db.session.commit()
+
+        return student
+
+    @staticmethod
+    def get_all_students():
+
+        return Student.query.all()
+
+    @staticmethod
+    def get_student_by_id(student_id):
+
+        return db.session.get(Student, student_id)
+
+    @staticmethod
+    def update_student(student_id, data):
+
+        student = db.session.get(Student, student_id)
+
+        if student is None:
+            return None
+
+        student.name = data["name"]
+        student.email = data["email"]
+        student.course = data["course"]
+
+        db.session.commit()
+
+        return student
+
+    @staticmethod
+    def delete_student(student_id):
+
+        student = db.session.get(Student, student_id)
+
+        if student is None:
+            return False
+
+        db.session.delete(student)
+        db.session.commit()
+
+        return True
+
+The controller should not contain database queries.
+
+For example, don't do this in the controller:
+
+Student.query.all()
+
+Instead:
+
+StudentService.get_all_students()
+4. Controller folder
+
+The controller handles:
+
+HTTP requests
+JSON input
+HTTP status codes
+JSON responses
+controller/__init__.py
+# Controller package
+controller/student_controller.py
+from flask import Blueprint, request, jsonify
+
+from service.student_service import StudentService
+
+
+student_controller = Blueprint(
+    "student_controller",
+    __name__
+)
+
+
+# ==========================================
+# CREATE STUDENT
+# POST /api/students
+# ==========================================
+
+@student_controller.route(
+    "/api/students",
+    methods=["POST"]
+)
+def create_student():
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "message": "Request body is required"
+        }), 400
+
+    required_fields = [
+        "name",
+        "email",
+        "course"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return jsonify({
+                "message": f"{field} is required"
+            }), 400
+
+    student = StudentService.create_student(data)
+
+    return jsonify({
+        "message": "Student created successfully",
+        "student": student.to_dict()
+    }), 201
+
+
+# ==========================================
+# GET ALL STUDENTS
+# GET /api/students
+# ==========================================
+
+@student_controller.route(
+    "/api/students",
+    methods=["GET"]
+)
+def get_all_students():
+
+    students = StudentService.get_all_students()
+
+    result = [
+        student.to_dict()
+        for student in students
+    ]
+
+    return jsonify(result), 200
+
+
+# ==========================================
+# GET STUDENT BY ID
+# GET /api/students/<id>
+# ==========================================
+
+@student_controller.route(
+    "/api/students/<int:student_id>",
+    methods=["GET"]
+)
+def get_student(student_id):
+
+    student = StudentService.get_student_by_id(
+        student_id
+    )
+
+    if student is None:
+        return jsonify({
+            "message": "Student not found"
+        }), 404
+
+    return jsonify(
+        student.to_dict()
+    ), 200
+
+
+# ==========================================
+# UPDATE STUDENT
+# PUT /api/students/<id>
+# ==========================================
+
+@student_controller.route(
+    "/api/students/<int:student_id>",
+    methods=["PUT"]
+)
+def update_student(student_id):
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "message": "Request body is required"
+        }), 400
+
+    student = StudentService.update_student(
+        student_id,
+        data
+    )
+
+    if student is None:
+        return jsonify({
+            "message": "Student not found"
+        }), 404
+
+    return jsonify({
+        "message": "Student updated successfully",
+        "student": student.to_dict()
+    }), 200
+
+
+# ==========================================
+# DELETE STUDENT
+# DELETE /api/students/<id>
+# ==========================================
+
+@student_controller.route(
+    "/api/students/<int:student_id>",
+    methods=["DELETE"]
+)
+def delete_student(student_id):
+
+    result = StudentService.delete_student(
+        student_id
+    )
+
+    if not result:
+        return jsonify({
+            "message": "Student not found"
+        }), 404
+
+    return jsonify({
+        "message": "Student deleted successfully"
+    }), 200
+5. Main app.py
+
+The main application only needs to configure Flask, initialize SQLAlchemy, create tables, and register the controller.
+
+from flask import Flask
+
+from config import Config
+from database import db
+from controller.student_controller import student_controller
+
+
+def create_app():
+
+    app = Flask(__name__)
+
+    # Load configuration
+    app.config.from_object(Config)
+
+    # Initialize database
+    db.init_app(app)
+
+    # Register controllers
+    app.register_blueprint(student_controller)
+
+    # Create database tables
+    with app.app_context():
+        db.create_all()
+
+    return app
+
+
+if __name__ == "__main__":
+
+    app = create_app()
+
+    app.run(
+        host="localhost",
+        port=5000,
+        debug=True
+    )
+6. Complete project structure
+student_api/
+│
+├── app.py
+├── config.py
+├── database.py
+│
+├── model/
+│   ├── __init__.py
+│   └── student.py
+│
+├── service/
+│   ├── __init__.py
+│   └── student_service.py
+│
+└── controller/
+    ├── __init__.py
+    └── student_controller.py
