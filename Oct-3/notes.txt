@@ -1,4 +1,10 @@
+LogisticRegression
+KMeans
 
+pip install pandas
+pip install scikit-learn
+
+https://github.com/prasannatrainer80/pythonex
 
 1. Student Pass/Fail Prediction
 
