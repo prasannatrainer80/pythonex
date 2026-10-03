@@ -1,0 +1,185 @@
+
+
+1. Student Pass/Fail Prediction
+
+Predict whether a student will pass based on study hours and attendance.
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report
+
+# Dataset
+data = {
+    "StudyHours": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "Attendance": [50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
+    "Pass": [0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+}
+
+df = pd.DataFrame(data)
+
+# Input and output
+X = df[["StudyHours", "Attendance"]]
+y = df["Pass"]
+
+# Split dataset
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Create model
+model = LogisticRegression()
+
+# Train
+model.fit(X_train, y_train)
+
+# Prediction
+y_pred = model.predict(X_test)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+
+# New student
+new_student = [[6, 80]]
+
+prediction = model.predict(new_student)
+probability = model.predict_proba(new_student)
+
+print("Prediction:", prediction)
+print("Probability:", probability)
+
+0 = Fail
+1 = Pass
+
+2. Employee Attrition Prediction
+
+A very useful real-world HR example.
+
+Predict whether an employee is likely to leave the company.
+
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+
+data = {
+    "Age": [22, 25, 28, 30, 35, 40, 45, 50, 26, 32],
+    "Salary": [25000, 28000, 32000, 35000, 45000,
+               55000, 65000, 70000, 30000, 40000],
+    "Experience": [1, 2, 3, 5, 8, 12, 15, 20, 3, 7],
+    "LeftCompany": [1, 1, 1, 0, 0, 0, 0, 0, 1, 0]
+}
+
+df = pd.DataFrame(data)
+
+X = df[["Age", "Salary", "Experience"]]
+y = df["LeftCompany"]
+
+model = LogisticRegression()
+
+model.fit(X, y)
+
+# Employee prediction
+employee = [[27, 30000, 3]]
+
+prediction = model.predict(employee)
+probability = model.predict_proba(employee)
+
+print("Will Leave:", prediction[0])
+print("Probability:", probability[0])
+3. Diabetes Prediction
+
+A classic machine-learning classification problem.
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+data = {
+    "Glucose": [85, 90, 110, 120, 130, 150, 160, 180, 200, 220],
+    "BMI": [22, 23, 25, 26, 28, 30, 32, 35, 37, 40],
+    "Age": [25, 27, 30, 32, 35, 40, 45, 50, 55, 60],
+    "Diabetes": [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+}
+
+df = pd.DataFrame(data)
+
+X = df[["Glucose", "BMI", "Age"]]
+y = df["Diabetes"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+model = LogisticRegression()
+
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+
+This is a machine-learning demonstration, not a medical diagnostic model.
+
+4. Customer Churn Prediction
+
+Predict whether a customer will cancel a service.
+
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+
+data = {
+    "MonthlyCharges": [20, 25, 30, 35, 40, 60, 70, 80, 90, 100],
+    "Tenure": [24, 20, 18, 15, 12, 8, 6, 4, 2, 1],
+    "SupportCalls": [0, 1, 1, 2, 2, 3, 4, 5, 6, 7],
+    "Churn": [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+}
+
+df = pd.DataFrame(data)
+
+X = df[["MonthlyCharges", "Tenure", "SupportCalls"]]
+y = df["Churn"]
+
+model = LogisticRegression()
+
+model.fit(X, y)
+
+customer = [[75, 5, 4]]
+
+prediction = model.predict(customer)
+probability = model.predict_proba(customer)
+
+print("Churn:", prediction[0])
+print("Churn Probability:", probability[0][1])
+5. Credit Approval Prediction
+
+Predict whether a loan application should be classified as approved/not approved.
+
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+
+data = {
+    "Income": [20000, 25000, 30000, 35000, 40000,
+               50000, 60000, 70000, 80000, 90000],
+    "CreditScore": [550, 580, 600, 620, 650,
+                    680, 700, 730, 760, 800],
+    "LoanAmount": [500000, 450000, 400000, 350000, 300000,
+                   300000, 250000, 250000, 200000, 200000],
+    "Approved": [0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+}
+
+df = pd.DataFrame(data)
+
+X = df[["Income", "CreditScore", "LoanAmount"]]
+y = df["Approved"]
+
+model = LogisticRegression()
+
+model.fit(X, y)
+
+application = [[55000, 690, 300000]]
+
+prediction = model.predict(application)
+probability = model.predict_proba(application)
+
+print("Approved:", prediction[0])
+print("Approval Probability:", probability[0][1])
